@@ -1,2 +1,8 @@
 fastapi
 uvicorn
+pydantic
+sqlalchemy
+databases
+asyncpg
+passlib[bcrypt]
+python-dotenv
