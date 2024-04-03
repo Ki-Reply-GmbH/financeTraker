@@ -2,7 +2,9 @@ fastapi
 uvicorn
 pydantic
 sqlalchemy
+psycopg2
 databases
 asyncpg
 passlib[bcrypt]
 python-dotenv
+fastapi-login
