@@ -1,1 +1,53 @@
 # financeTraker
+
+## Docker Compose Setup
+
+Before running the application with Docker Compose, you need to set up your environment variables:
+
+1. Copy the `.env.example` file to `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Open the .env file and fill in the values for POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB.
+
+3. Run the application using Docker Compose:
+
+   ```bash
+   cdocker-compose up
+   ```
+
+   The system should be up and running at http://localhost:8000
+
+## Local development setup
+
+Once you copied the repository,
+
+1. Copy the `.env.example` file to `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Open the .env file and fill in the values for POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB.
+3. fill in the value for DATABASE_URL as
+
+   ```bash
+   DATABASE_URL=postgresql://POSTGRES_USER:POSTGRES_PASSWORD@localhost:5432/POSTGRES_DB
+   ```
+
+4. open up terminal in the root directory and run these comands
+
+```bash
+docker-compose up db
+```
+
+This should start the DB container, Now open up another terminal and run this command
+
+```bash
+
+uvicorn app.main:app --reload
+```
+
+You should see in your termanal that the app has started.
