@@ -4,12 +4,12 @@ from .config import DATABASE_URL, test_connection
 
 app = FastAPI()
 
-async def startup_event():
+async def test_database_connection_on_startup():
     await test_connection()
 
-app.add_event_handler("startup", startup_event)
-
 app.include_router(UserRouter)
+
+app.add_event_handler("startup", test_database_connection_on_startup)
 
 @app.get("/")
 def read_root():
