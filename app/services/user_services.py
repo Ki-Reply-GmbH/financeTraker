@@ -13,7 +13,7 @@ def create_user(user: UserCreate):
 
 def get_user(email: str):
     db = SessionLocal()
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = db.query(models.User).filter(models.User.email == email).first()    
     db.close()
     return user
 

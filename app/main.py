@@ -3,12 +3,15 @@ from fastapi.responses import FileResponse
 from app.routes.users import router as UserRouter
 from app.config import DATABASE_URL, test_connection
 from app.models.models import Base, engine  # Import Base and engine from your models module
+from app import get_logger
+
+logger = get_logger(__name__)
 
 app = FastAPI()
 
 async def test_database_connection_on_startup():
-    await test_connection()
 
+    await test_connection()
     # Create the database tables
     Base.metadata.create_all(bind=engine)
 

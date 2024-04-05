@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 import os
 from databases import Database
-from app.logger import get_logger
+from app import get_logger
 
 logger = get_logger(__name__)
 
@@ -17,8 +17,10 @@ if DATABASE_URL is None:
 database = Database(DATABASE_URL)
 
 async def test_connection():
-    await database.connect()
-    logger.info("Connected to the database!")
-    await database.disconnect()
-    logger.info("Disconnected from the database!")
-
+    try:
+        await database.connect()
+        logger.info("Connected to the database!")
+        await database.disconnect()
+        logger.info("Disconnected from the database!")
+    except Exception as e:
+        logger.error(f"Failed to connect to the database: {str(e)}")
