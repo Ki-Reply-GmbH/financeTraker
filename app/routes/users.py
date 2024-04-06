@@ -2,18 +2,14 @@ from fastapi import APIRouter,Depends
 from fastapi.responses import JSONResponse
 from app.models.user import UserCreate, UserLogin
 from app.services.auth import create_access_token, get_current_user
-from app.services.user_services import create_user,get_users_from_db,get_user
+from app.services.user_services import create_user,get_user
 from app import get_logger
+from fastapi import HTTPException
 
 
 logger = get_logger(__name__)
 
 router = APIRouter()
-
-@router.get("/user/getUsers")
-async def get_users():
-    users=get_users_from_db()
-    return {"users": users}
 
 @router.post("/user/register")
 async def register_user(user: UserCreate):
@@ -22,11 +18,17 @@ async def register_user(user: UserCreate):
         return {"message": "User registered successfully"}
     except Exception as e:
         logger.error(f"Error registering user: {str(e)}")
-        return {"message": "Error registering user"}
+        raise HTTPException(status_code=500, detail="Error registering user")
 
 @router.post("/user/login")
 async def login(user: UserLogin):
-    user=get_user(user.email)
+    try:
+        user = get_user(user.email)
+        if user is None:
+            return {"message": "User not found"}
+    except Exception as e:
+        logger.error(f"Error retrieving user: {str(e)}")
+        return {"message": "Error retrieving user"}
     access_token = create_access_token(data={"sub": user.id})
     return JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
 
