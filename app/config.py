@@ -10,8 +10,8 @@ logger = get_logger(__name__)
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-SECRET_Key = os.getenv("SECRET_KEY")
-ACCESS_TOKEN_EXPIRE_MINUTES= os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+SECRET_KEY = os.getenv("SECRET_KEY")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 if DATABASE_URL is None:
     raise ValueError("DATABASE_URL is not set in the environment variables")
@@ -35,7 +35,7 @@ def secret_generator():
     return secrets.token_hex(32)
 
 def get_secret_key():
-    return SECRET_Key
+    return SECRET_KEY
 
 def get_access_token_expire_minutes():
     return ACCESS_TOKEN_EXPIRE_MINUTES
