@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">User Page</h1>
+
+        <div id="loginPanel" class="mt-5">
+            <h2>Login</h2>
+            <form>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-primary" onclick="submitLogin()">Login</button>
+                    <div class="text-center mt-3">
+                        <span>or</span>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#registrationModal">Register</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal fade" id="registrationModal" tabindex="-1" role="dialog" aria-labelledby="registrationModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="registrationModalLabel">Registration</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" class="form-control" id="name" placeholder="Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="regEmail">Email</label>
+                                <input type="email" class="form-control" id="regEmail" placeholder="Email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="regPassword">Password</label>
+                                <input type="password" class="form-control" id="regPassword" placeholder="Password" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Go Back</button>
+                        <button type="button" class="btn btn-primary" onclick="submitRegistration()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function submitLogin() {
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+
+            var data = JSON.stringify({ "email": email, "password": password });
+
+            fetch('/user/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: data
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error with request, status code: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(json => {
+                    // Handle the response data as needed
+                    console.log('Response received');
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+    function submitRegistration() {
+        var name = document.getElementById('name').value;
+        var email = document.getElementById('regEmail').value;
+        var password = document.getElementById('regPassword').value;
+
+        fetch('/user/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: name, email: email, password: password })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+
+                $('#registrationModal').modal('hide');
+                
+                   // Create a Bootstrap alert
+                var alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show text-center'; 
+                alert.role = 'alert';
+                alert.innerHTML = 'Registration successful!';
+
+                // Append the alert to the body
+                document.body.appendChild(alert);
+
+                // Dismiss the alert after 3 seconds
+                setTimeout(function () {
+                    $(alert).alert('close');
+                },3000);
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+    }
+    </script>
+</body>
+</html>
