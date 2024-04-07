@@ -1,10 +1,12 @@
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse
 from app.routes.users import router as UserRouter
+from app.routes.transactions import router as TransactionRouter
 from app.config import DATABASE_URL, test_connection, secret_generator
 from app.models.models import Base, engine  # Import Base and engine from your models module
 from app import get_logger
 import os
+from fastapi import HTTPException
 
 logger = get_logger(__name__)
 
@@ -17,6 +19,7 @@ async def test_database_connection_on_startup():
     Base.metadata.create_all(bind=engine)
 
 app.include_router(UserRouter)
+app.include_router(TransactionRouter)
 
 app.add_event_handler("startup", test_database_connection_on_startup)
 
@@ -28,6 +31,20 @@ if not os.getenv("SECRET_KEY"):
         f.write(f'\nSECRET_KEY={secret}\n')
     
 
-@app.get("/", response_class=FileResponse)
+@app.get("/", response_class=HTMLResponse)
 async def read_home():
-    return os.path.abspath("./app/static/UI/user.html")
+    path= os.path.abspath("./app/static/UI/dashboard.html")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Page not found")
+    with open(path) as f:
+        html_content = f.read()
+    return html_content
+
+@app.get("/ui/{id}", response_class=HTMLResponse)
+async def read_ui(id: str):
+    path = os.path.abspath(f"./app/static/UI/{id}.html")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Page not found")
+    with open(path) as f:
+        html_content = f.read()
+    return html_content

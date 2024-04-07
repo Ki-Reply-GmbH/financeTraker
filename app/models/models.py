@@ -1,10 +1,14 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime,Enum as EnumColumn
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker,relationship
+from sqlalchemy import inspect
 from app.config import DATABASE_URL
 from datetime import datetime
 import bcrypt
 from enum import Enum
+from sqlalchemy import Enum as SQLAlchemyEnum
+
+
 
 from contextlib import contextmanager
 
@@ -21,7 +25,9 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
-
+class TransactionType(Enum):
+    INCOME = 'INCOME'
+    EXPENSE = 'EXPENSE'
 class User(Base):
     __tablename__ = "users"
 
@@ -29,11 +35,10 @@ class User(Base):
     name = Column(String)
     email = Column(String, unique=True, index=True)
     _password = Column("password", String)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
 
     transactions = relationship('Transaction', back_populates='owner')
-    categories = relationship('Category', back_populates='owner')
-    
+        
     @property
     def password(self):
         return self._password
@@ -50,24 +55,24 @@ class Transaction(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     amount = Column(Float)
     description = Column(String)
-    date = Column(DateTime, default=datetime.now)
+    trxdate = Column(DateTime, default=datetime.now)
     created_at = Column(DateTime, default=datetime.now)
+    type = Column(SQLAlchemyEnum(TransactionType))  # Could be 'income' or 'expense'
+    source = Column(String)  
 
     owner = relationship('User', back_populates='transactions')
     category = relationship('Category', back_populates='transactions')
-class TransactionType(Enum):
-        INCOME = 'income'
-        EXPENSE = 'expense'
+    
+    def to_dict(self):
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+
 class Category(Base):
     __tablename__ = 'categories'
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-
-
-    type = Column(EnumColumn(TransactionType))  # Could be 'income' or 'expense'
-
-    owner = relationship('User', back_populates='categories')
     transactions = relationship('Transaction', back_populates='category')
+    
+    def to_dict(self):
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
