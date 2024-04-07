@@ -16,10 +16,22 @@ ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 if DATABASE_URL is None:
     raise ValueError("DATABASE_URL is not set in the environment variables")
 
+from sqlalchemy import create_engine, MetaData
+
+# DELETE all data from DBif necessary
+
+# engine = create_engine(DATABASE_URL)
+
+# meta = MetaData()
+
+# meta.reflect(bind=engine)
+
+# meta.drop_all(bind=engine)
 
 database = Database(DATABASE_URL)
 
 async def test_connection():
+
 
         try:
             await database.connect()

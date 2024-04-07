@@ -86,7 +86,8 @@
                     return response.json();
                 })
                 .then(json => {
-                    // Handle the response data as needed
+                    document.cookie = `access_token=${json.access_token}; path=/`;
+                    window.location.href = '/';
                     console.log('Response received');
                 })
                 .catch(error => console.error('Error:', error));
