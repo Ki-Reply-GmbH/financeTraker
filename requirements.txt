@@ -10,3 +10,5 @@ python-dotenv
 fastapi-login
 pyjwt
 pytest
+pytest-cov
+pytest-mock

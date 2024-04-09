@@ -1,9 +1,9 @@
 from fastapi import APIRouter,Depends
 from fastapi.responses import JSONResponse
-from app.models.user import UserCreate, UserLogin
-from app.services.auth import create_access_token, get_current_user
-from app.services.user_services import create_user,get_user
-from app import get_logger
+from models.user import UserCreate, UserLogin
+from services.auth import create_access_token, get_current_user
+from services.user_services import create_user,get_user
+from logger import get_logger
 from fastapi import HTTPException
 
 

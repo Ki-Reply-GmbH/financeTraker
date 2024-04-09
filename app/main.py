@@ -4,7 +4,7 @@ from app.routes.users import router as UserRouter
 from app.routes.transactions import router as TransactionRouter
 from app.config import DATABASE_URL, test_connection, secret_generator
 from app.models.models import Base, engine  # Import Base and engine from your models module
-from app import get_logger
+from logger import get_logger
 import os
 from fastapi import HTTPException
 

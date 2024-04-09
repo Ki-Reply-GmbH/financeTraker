@@ -1,6 +1,6 @@
-from app.models.user import UserCreate, UserLogin
-from app.models.models import SessionLocal,get_db
-from app.models import models
+from models.user import UserCreate, UserLogin
+from models.models import SessionLocal,get_db
+from models import models
 
 def create_user(user: UserCreate):
     with get_db() as db:

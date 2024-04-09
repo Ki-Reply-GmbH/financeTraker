@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 import os
 from databases import Database
-from app import get_logger
+from logger import get_logger
 import secrets
 
 logger = get_logger(__name__)
@@ -31,8 +31,6 @@ from sqlalchemy import create_engine, MetaData
 database = Database(DATABASE_URL)
 
 async def test_connection():
-
-
         try:
             await database.connect()
             logger.info("Connected to the database!")
