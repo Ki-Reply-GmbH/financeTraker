@@ -1,21 +1,23 @@
-from services.user_services import create_user
 from models.user import UserCreate
+from services.user_services import create_user, get_user, get_user_by_id, get_users_from_db
+from unittest.mock import MagicMock, patch
 import pytest
 
-# Define a test function
-def test_create_user(mocker):
-    # Create a mock UserCreate instance
-    user_create_instance = UserCreate(username="testuser", password="testpassword")
+@pytest.fixture
+def mock_get_db():
+    mock_db = MagicMock()
+    with patch('services.user_services.get_db', return_value=mock_db):
+        yield mock_db
 
-    # Mock the database session and models
-    mock_db = mocker.MagicMock()
-    mocker.patch("services.user_services.get_db", return_value=mock_db)
+def test_create_user(mock_get_db):
+    # Mock UserCreate instance
+    mock_user_create = UserCreate(username="testuser", name="Test User", email="test@gmail.com", password="testpassword")
 
-    # Call the create_user function with the mock user instance
-    result = create_user(user_create_instance)
+    # Call the function
+    created_user = create_user(mock_user_create)
 
-    # Assert that the correct methods were called on the mock objects
-    mock_db.add.assert_called_once_with()  # Adjust as per your actual usage
-    mock_db.commit.assert_called_once()  # Adjust as per your actual usage
-    mock_db.refresh.assert_called_once_with(result)  # Adjust as per your actual usage
-    # Add additional assertions as needed
+    # Assertions
+    assert mock_get_db.add.called_once()
+    assert mock_get_db.commit.called_once()
+    assert mock_get_db.refresh.called_with(created_user)
+
