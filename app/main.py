@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from app.routes.users import router as UserRouter
-from app.routes.transactions import router as TransactionRouter
-from app.config import DATABASE_URL, test_connection, secret_generator
-from app.models.models import Base, engine  # Import Base and engine from your models module
+from routes.users import router as UserRouter
+from routes.transactions import router as TransactionRouter
+from config import DATABASE_URL, test_connection, secret_generator
+from models.models import Base, engine  # Import Base and engine from your models module
 from logger import get_logger
 import os
 from fastapi import HTTPException
@@ -48,3 +48,7 @@ async def read_ui(id: str):
     with open(path) as f:
         html_content = f.read()
     return html_content
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app)
