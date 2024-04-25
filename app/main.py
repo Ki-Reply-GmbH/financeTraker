@@ -13,7 +13,6 @@ logger = get_logger(__name__)
 app = FastAPI()
 
 async def test_database_connection_on_startup():
-
     await test_connection()
     # Create the database tables
     Base.metadata.create_all(bind=engine)
@@ -33,19 +32,22 @@ if not os.getenv("SECRET_KEY"):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_home():
-    path= os.path.abspath("./app/static/UI/dashboard.html")
-    if not os.path.exists(path):
+    base_path = os.path.abspath("./app/static/UI")
+    safe_path = os.path.join(base_path, "dashboard.html")
+    safe_path = os.path.normpath(safe_path)
+    if not safe_path.startswith(base_path) or not os.path.exists(safe_path):
         raise HTTPException(status_code=404, detail="Page not found")
-    with open(path) as f:
+    with open(safe_path) as f:
         html_content = f.read()
     return html_content
 
 @app.get("/ui/{id}", response_class=HTMLResponse)
 async def read_ui(id: str):
-    path = os.path.abspath(f"./app/static/UI/{id}.html")
-    if not os.path.exists(path):
+    base_path = os.path.abspath("./app/static/UI")
+    safe_path = os.path.normpath(os.path.join(base_path, f'{id}.html'))
+    if not safe_path.startswith(base_path) or not os.path.exists(safe_path):
         raise HTTPException(status_code=404, detail="Page not found")
-    with open(path) as f:
+    with open(safe_path) as f:
         html_content = f.read()
     return html_content
 
