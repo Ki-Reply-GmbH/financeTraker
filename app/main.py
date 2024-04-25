@@ -42,12 +42,16 @@ async def read_home():
 
 @app.get("/ui/{id}", response_class=HTMLResponse)
 async def read_ui(id: str):
-    path = os.path.abspath(f"./app/static/UI/{id}.html")
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="Page not found")
-    with open(path) as f:
-        html_content = f.read()
-    return html_content
+    allowed_files = ['dashboard', 'settings', 'profile']  # List of allowed filenames
+    if id in allowed_files:
+        path = os.path.abspath(f"./app/static/UI/{id}.html")
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="Page not found")
+        with open(path) as f:
+            html_content = f.read()
+        return html_content
+    else:
+        raise HTTPException(status_code=403, detail="Access denied")
 
 if __name__ == "__main__":
     import uvicorn
