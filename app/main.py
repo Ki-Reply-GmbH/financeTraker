@@ -33,16 +33,15 @@ if not os.getenv("SECRET_KEY"):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_home():
-    path= os.path.abspath("./app/static/UI/dashboard.html")
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="Page not found")
-    with open(path) as f:
-        html_content = f.read()
-    return html_content
+    return await read_ui('dashboard')
 
 @app.get("/ui/{id}", response_class=HTMLResponse)
 async def read_ui(id: str):
-    path = os.path.abspath(f"./app/static/UI/{id}.html")
+    # Safeguard against path traversal
+    if '..' in id or id.startswith('/') or '\' in id:
+        raise HTTPException(status_code=400, detail="Invalid path")
+    path = os.path.join(os.path.abspath("./app/static/UI"), f"{id}.html")
+    path = os.path.normpath(path)
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Page not found")
     with open(path) as f:
