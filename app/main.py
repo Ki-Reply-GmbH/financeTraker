@@ -1,12 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import HTMLResponse
 from routes.users import router as UserRouter
 from routes.transactions import router as TransactionRouter
 from config import DATABASE_URL, test_connection, secret_generator
-from models.models import Base, engine  # Import Base and engine from your models module
+from models.models import Base, engine
 from logger import get_logger
 import os
-from fastapi import HTTPException
 
 logger = get_logger(__name__)
 
@@ -14,18 +13,14 @@ app = FastAPI()
 
 
 async def test_database_connection_on_startup():
-
     await test_connection()
-    # Create the database tables
     Base.metadata.create_all(bind=engine)
-
 
 app.include_router(UserRouter)
 app.include_router(TransactionRouter)
 
 app.add_event_handler("startup", test_database_connection_on_startup)
 
-# if in the env file SECREAT_KEY is not set, generate a new one
 if not os.getenv("SECRET_KEY"):
     logger.info("Generating new secret key")
     secret = secret_generator()
@@ -45,6 +40,9 @@ async def read_home():
 
 @app.get("/ui/{id}", response_class=HTMLResponse)
 async def read_ui(id: str):
+    allowed_ids = ['dashboard', 'settings', 'profile']  # Example list of allowed ids
+    if id not in allowed_ids:
+        raise HTTPException(status_code=404, detail="Page not found")
     path = os.path.abspath(f"./app/static/UI/{id}.html")
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Page not found")
