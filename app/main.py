@@ -12,11 +12,13 @@ logger = get_logger(__name__)
 
 app = FastAPI()
 
+
 async def test_database_connection_on_startup():
 
     await test_connection()
     # Create the database tables
     Base.metadata.create_all(bind=engine)
+
 
 app.include_router(UserRouter)
 app.include_router(TransactionRouter)
@@ -26,19 +28,20 @@ app.add_event_handler("startup", test_database_connection_on_startup)
 # if in the env file SECREAT_KEY is not set, generate a new one
 if not os.getenv("SECRET_KEY"):
     logger.info("Generating new secret key")
-    secret=secret_generator()
-    with open('.env', 'a') as f:
-        f.write(f'\nSECRET_KEY={secret}\n')
-    
+    secret = secret_generator()
+    with open(".env", "a") as f:
+        f.write(f"\nSECRET_KEY={secret}\n")
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_home():
-    path= os.path.abspath("./app/static/UI/dashboard.html")
+    path = os.path.abspath("./app/static/UI/dashboard.html")
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Page not found")
     with open(path) as f:
         html_content = f.read()
     return html_content
+
 
 @app.get("/ui/{id}", response_class=HTMLResponse)
 async def read_ui(id: str):
@@ -49,6 +52,8 @@ async def read_ui(id: str):
         html_content = f.read()
     return html_content
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app)
