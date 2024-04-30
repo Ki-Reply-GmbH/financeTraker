@@ -1,4 +1,6 @@
-# financeTraker
+# Finance Tracking App
+
+Welcome to the Finance Tracking App, your go-to solution for managing and monitoring your daily expenses with ease. This application is designed to help users gain better control over their financial health by tracking expenditures and categorizing them into various budget sections. Whether you're looking to keep a closer eye on your groceries, utilities, or leisure activities, our app makes it simple and intuitive.
 
 ## Docker Compose Setup
 
