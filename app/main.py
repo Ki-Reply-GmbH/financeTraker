@@ -35,8 +35,10 @@ if not os.getenv("SECRET_KEY"):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_home():
-    path = os.path.abspath("./app/static/UI/dashboard.html")
-    if not os.path.exists(path):
+    allowed_files = {'dashboard.html'}
+    path = './app/static/UI/dashboard.html'
+    file_name = 'dashboard.html'
+    if file_name not in allowed_files:
         raise HTTPException(status_code=404, detail="Page not found")
     with open(path) as f:
         html_content = f.read()
@@ -45,9 +47,11 @@ async def read_home():
 
 @app.get("/ui/{id}", response_class=HTMLResponse)
 async def read_ui(id: str):
-    path = os.path.abspath(f"./app/static/UI/{id}.html")
-    if not os.path.exists(path):
+    allowed_files = {'page1.html', 'page2.html', 'page3.html'}  # example file names
+    file_name = f'{id}.html'
+    if file_name not in allowed_files:
         raise HTTPException(status_code=404, detail="Page not found")
+    path = f'./app/static/UI/{file_name}'
     with open(path) as f:
         html_content = f.read()
     return html_content
