@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 import os
 from databases import Database
-from logger import get_logger
+from app.logger import get_logger
 import secrets
 
 logger = get_logger(__name__)

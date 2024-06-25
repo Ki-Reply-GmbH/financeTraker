@@ -1,0 +1,1 @@
+"\"def get_users_from_db():\\n    with get_db() as db:\\n        users = db.query(UserCreate).all()\\n        return users\""

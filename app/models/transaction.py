@@ -1,5 +1,5 @@
 from typing import Union
-from models.models import TransactionType
+from app.models.models import TransactionType
 from pydantic import BaseModel, Field
 from datetime import date
 from sqlalchemy import inspect

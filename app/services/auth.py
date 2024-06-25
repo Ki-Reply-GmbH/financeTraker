@@ -1,9 +1,9 @@
 import jwt
 from jwt import PyJWTError
 from datetime import datetime, timedelta
-from config import get_secret_key,get_access_token_expire_minutes
-from services.user_services import get_user_by_id
-from logger import get_logger
+from app.config import get_secret_key,get_access_token_expire_minutes
+from app.services.user_services import get_user_by_id
+from app.logger import get_logger
 
 logger = get_logger(__name__)
 
