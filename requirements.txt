@@ -12,4 +12,6 @@ pyjwt
 pytest
 pytest-cov
 pytest-mock
-ast
+langchain_openai
+langchain
+langchain_core
