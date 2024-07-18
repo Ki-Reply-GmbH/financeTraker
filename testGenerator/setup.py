@@ -11,6 +11,10 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts.chat import ChatPromptTemplate
 
+from langchain_core.messages import SystemMessage
+
+from langchain_core.prompts import HumanMessagePromptTemplate
+
 
 
 
@@ -37,10 +41,10 @@ IF there are single quotes in the code, escape them with a backslash
 IF there are new lines in the code, escape them with a backslash
 IF there are any other special characters in the code, escape them with a backslash
 
-{{
+{
     "function_description": "GENERATED DESCRIPTION HERE",
     "code": "GENERATED CODE HERE"
-}}
+}
 IE: 
 userInput:"async def register_user(user: UserCreate):
     try:
@@ -51,16 +55,34 @@ userInput:"async def register_user(user: UserCreate):
         raise HTTPException(status_code=500, detail="Error registering user")"
 
 LLM respons 
-'{{
+{
     function_description: this function adds two numbers and returns a number
     code: "
-def test_create_user(mocker):\n\tuser_create_instance = UserCreate(username="testuser", password="testpassword")\nmock_db = mocker.MagicMock()\nmocker.patch("services.user_services.get_db", return_value=mock_db)\nresult = create_user(user_create_instance)\nmock_db.add.assert_called_once_with()\nmock_db.commit.assert_called_once()\nmock_db.refresh.assert_called_once_with(result)}}'\n"""
+def test_create_user(mocker):\n\tuser_create_instance = UserCreate(username="testuser", password="testpassword")\nmock_db = mocker.MagicMock()\nmocker.patch("services.user_services.get_db", return_value=mock_db)\nresult = create_user(user_create_instance)\nmock_db.add.assert_called_once_with()\nmock_db.commit.assert_called_once()\nmock_db.refresh.assert_called_once_with(result)}'\n"""
     
-prompt = ChatPromptTemplate.from_messages([
-    ("system", prompt_template),
-    ("human", "{input}")
-])
+# prompt = ChatPromptTemplate.from_messages([
+#     ("system", prompt_template),
+#     ("human", "{input}")
+# ])
+prompt = ChatPromptTemplate.from_messages(
 
+    [
+
+        SystemMessage(
+
+            content=(
+
+                prompt_template
+
+            )
+
+        ),
+
+        HumanMessagePromptTemplate.from_template("{input}"),
+
+    ]
+
+)
 
 from langchain_core.output_parsers import JsonOutputParser
 import json
