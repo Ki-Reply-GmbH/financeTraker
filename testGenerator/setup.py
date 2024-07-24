@@ -20,7 +20,7 @@ from langchain_core.prompts import HumanMessagePromptTemplate
 
 chat = ChatOpenAI(
     
-    model="gpt-4o-2024-05-13",
+    model="gpt-4-turbo",
     api_key=api_key,
     max_tokens=2000,
     temperature=0,
@@ -30,34 +30,50 @@ chat = ChatOpenAI(
 
 prompt_template = """You are tasked with generating a clear and concise description of a function and corresponding unit tests. The procedure is given in the Description Phase and the Unit Test Generation Phase. Follow them sequentially:
  
-###Description Phase:### 
+###Description Phase:###
 Generate a concise description of the function's main purpose, inputs (including variable types), execution process, and output.
 The description should be formal and clearly capture the essence of the function.
  
-###Unit Test Generation Phase:### 
+Generate a concise description of the function's main purpose, inputs (including variable types), execution process, and output.
+The description should be formal and clearly capture the essence of the function.
+Utilize pytest and mocker for data-driven testing.
+Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
+Include unit test code and inline documentation explaining the test purpose and logic.
+Use mocks to simulate external dependencies accurately.
+ 
+###Unit Test Generation Phase:###
+ 
 Based on the initial description, craft corresponding unit tests from the  Human Message.
 Utilize pytest and mocker for data-driven testing.
 Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
 Include unit test code and inline documentation explaining the test purpose and logic.
 Use mocks to simulate external dependencies accurately.
  
-###Important Instructions:### 
+###Important Instructions:###
+ 
 In your response, follow the exact format shown in the example below.
 Escape all special characters in the code (e.g., double quotes, single quotes, new lines) with a backslash.
+ 
+Example:
  
 Example: 
 {
     "function_description": "GENERATED DESCRIPTION HERE",
     "code": "GENERATED CODE HERE"
 } 
-sample User Input: input is defined in  Human Message. 
-sample LLM Response: 
+ 
+sample User Input: input is defined in  Human Message.
+ 
+ 
+sample LLM Response:
+ 
 {
     "function_description": "This function registers a new user. It takes a single input `user` of type `UserCreate`, attempts to create the user, and returns a success message. If an error occurs, it logs the error and raises an HTTP 500 exception.",
     "code": "import pytest\\n\\nasync def test_register_user(mocker):\\n\\t# Given\\n\\tuser_create_instance = UserCreate(username=\\\"testuser\\\", password=\\\"testpassword\\\")\\n\\tmock_create_user = mocker.patch('path.to.create_user')\\n\\tmock_logger = mocker.patch('path.to.logger.error')\\n\\tmock_http_exception = mocker.patch('path.to.HTTPException')\\n\\n\\t# When\\n\\tresponse = await register_user(user_create_instance)\\n\\n\\t# Then\\n\\tmock_create_user.assert_called_once_with(user_create_instance)\\n\\tassert response == {\\\"message\\\": \\\"User registered successfully\\\"}\\n\\n\\t# When Exception Occurs\\n\\tmock_create_user.side_effect = Exception(\\\"Error\\\")\\n\\twith pytest.raises(HTTPException) as exc_info:\\n\\t\\tawait register_user(user_create_instance)\\n\\tmock_logger.assert_called_once()\\n\\tassert exc_info.value.status_code == 500\\n\\tassert exc_info.value.detail == \\\"Error registering user\\\""
-} 
+}
+ 
+ 
 """
-    
 prompt = ChatPromptTemplate.from_messages(
 
     [
