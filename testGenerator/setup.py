@@ -20,50 +20,44 @@ from langchain_core.prompts import HumanMessagePromptTemplate
 
 chat = ChatOpenAI(
     
-    model="gpt-3.5-turbo-0125",
+    model="gpt-4o-2024-05-13",
     api_key=api_key,
     max_tokens=2000,
-    temperature=0.2,
+    temperature=0,
     streaming=False
     )
 
 
-prompt_template = """Code Description Assistant is now designed to operate in two distinct phases for each piece of function code it processes. First, it generates a concise description that highlights the function's main purpose, inputs (including variable types), execution process, and output. This description captures the essence of the function in a clear, formal tone.
+prompt_template = """You are tasked with generating a clear and concise description of a function and corresponding unit tests. The procedure is given in the Description Phase and the Unit Test Generation Phase. Follow them sequentially:
  
-In the second phase, based on the initial description, Code Description Assistant crafts corresponding unit tests. It utilizes pytest and mocker for data-driven testing, structuring tests with clear Given, When, and Then blocks. The goal is to enhance test coverage and support robust system development. It starts with unit test code and includes inline documentation to explain test purpose and logic, ensuring clarity. Mocks are used to simulate external dependencies accurately.
+###Description Phase:### 
+Generate a concise description of the function's main purpose, inputs (including variable types), execution process, and output.
+The description should be formal and clearly capture the essence of the function.
  
-This bifurcated approach allows for a clear separation between understanding the function's functionality and verifying its correctness through unit testing.
-
-IMPORtANT!!
-In your response follow the exact format as shown in the example below
-IF there are double quotes in the code, escape them with a backslash
-IF there are single quotes in the code, escape them with a backslash
-IF there are new lines in the code, escape them with a backslash
-IF there are any other special characters in the code, escape them with a backslash
-
+###Unit Test Generation Phase:### 
+Based on the initial description, craft corresponding unit tests from the  Human Message.
+Utilize pytest and mocker for data-driven testing.
+Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
+Include unit test code and inline documentation explaining the test purpose and logic.
+Use mocks to simulate external dependencies accurately.
+ 
+###Important Instructions:### 
+In your response, follow the exact format shown in the example below.
+Escape all special characters in the code (e.g., double quotes, single quotes, new lines) with a backslash.
+ 
+Example: 
 {
     "function_description": "GENERATED DESCRIPTION HERE",
     "code": "GENERATED CODE HERE"
-}
-IE: 
-userInput:"async def register_user(user: UserCreate):
-    try:
-        create_user(user)
-        return {"message": "User registered successfully"}
-    except Exception as e:
-        logger.error(f"Error registering user: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error registering user")"
-
-LLM respons 
+} 
+sample User Input: input is defined in  Human Message. 
+sample LLM Response: 
 {
-    function_description: this function adds two numbers and returns a number
-    code: "
-def test_create_user(mocker):\n\tuser_create_instance = UserCreate(username="testuser", password="testpassword")\nmock_db = mocker.MagicMock()\nmocker.patch("services.user_services.get_db", return_value=mock_db)\nresult = create_user(user_create_instance)\nmock_db.add.assert_called_once_with()\nmock_db.commit.assert_called_once()\nmock_db.refresh.assert_called_once_with(result)}'\n"""
+    "function_description": "This function registers a new user. It takes a single input `user` of type `UserCreate`, attempts to create the user, and returns a success message. If an error occurs, it logs the error and raises an HTTP 500 exception.",
+    "code": "import pytest\\n\\nasync def test_register_user(mocker):\\n\\t# Given\\n\\tuser_create_instance = UserCreate(username=\\\"testuser\\\", password=\\\"testpassword\\\")\\n\\tmock_create_user = mocker.patch('path.to.create_user')\\n\\tmock_logger = mocker.patch('path.to.logger.error')\\n\\tmock_http_exception = mocker.patch('path.to.HTTPException')\\n\\n\\t# When\\n\\tresponse = await register_user(user_create_instance)\\n\\n\\t# Then\\n\\tmock_create_user.assert_called_once_with(user_create_instance)\\n\\tassert response == {\\\"message\\\": \\\"User registered successfully\\\"}\\n\\n\\t# When Exception Occurs\\n\\tmock_create_user.side_effect = Exception(\\\"Error\\\")\\n\\twith pytest.raises(HTTPException) as exc_info:\\n\\t\\tawait register_user(user_create_instance)\\n\\tmock_logger.assert_called_once()\\n\\tassert exc_info.value.status_code == 500\\n\\tassert exc_info.value.detail == \\\"Error registering user\\\""
+} 
+"""
     
-# prompt = ChatPromptTemplate.from_messages([
-#     ("system", prompt_template),
-#     ("human", "{input}")
-# ])
 prompt = ChatPromptTemplate.from_messages(
 
     [

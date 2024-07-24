@@ -3,51 +3,46 @@ import ast
 import os
 from functionGraber import get_functions_and_imports, format_functions_as_string
 
-from testGenConfig import source_dir, test_dir
+from testGenConfig import source_dir, test_dir,project_root_module_name
+    
+    
+def save_test_to_file(source_file, func_name, generated_test_code):
+    # Get the base name of the source file with extension
+    base_name_with_extension = os.path.basename(get_source_file)
+    # Split the base name and the extension
+    file_name, file_extension = os.path.splitext(base_name_with_extension)
+    
+    file_name_with_extension = file_name + file_extension
+    print(f"File name with extension: {file_name_with_extension}")
 
-# Get the functions from the source file for llm invocation
-def get_functions(source_file):
-    functions= get_functions_and_imports(source_file)
+
+    file_name = os.path.splitext(os.path.basename(get_source_file))[0]
+    print(file_name)
+    # Create the directory if it doesn't exist
+    test_file_dir = os.path.join(test_dir, file_name)
+    os.makedirs(test_file_dir+"_test", exist_ok=True)
+    
+    test_file_path = os.path.join(test_file_dir+ f'/{func_name}_test.py')
+    
+    with open(test_file_path, 'w') as f:
+        f.write(generated_test_code)
+    f.close()
+    
+
+def get_functions(source_file,project_root_module_name):
+    functions= get_functions_and_imports(source_file,project_root_module_name)
     formatted_string = format_functions_as_string(functions)
-    return formatted_string
-get_source_file = os.path.join(source_dir, 'services', 'user_services.py')                               
-
-functionsDetails = get_functions(get_source_file)
-
-
-# for item in functionsDetails:
-response= llm.invoke({"input": functionsDetails[0]})
+    return functions,formatted_string
+get_source_file = os.path.join(source_dir, 'services', 'user_services.py')  
+def generate_test_with_LLM():
     
-    
-# def save_test_to_file():
-#     # Get the base name of the source file with extension
-#     base_name_with_extension = os.path.basename(get_source_file)
-#     # Split the base name and the extension
-#     file_name, file_extension = os.path.splitext(base_name_with_extension)
-    
-#     print(f"File name: {file_name}")
-#     print(f"Extension: {file_extension}")
-    
-#     file_name_with_extension = file_name + file_extension
-#     print(f"File name with extension: {file_name_with_extension}")
-
-
-#     file_name = os.path.splitext(os.path.basename(get_source_file))[0]
-#     print(file_name)
-#     # Create the directory if it doesn't exist
-#     test_file_dir = os.path.join(test_dir, file_name)
-#     os.makedirs(test_file_dir, exist_ok=True)
-    
-#     test_file_path = os.path.join(test_file_dir+ f'/{func_name}.py')
-    
-#     with open(test_file_path, 'w') as f:
-#         f.write(code)
-#     f.close()
+    functionsWithImport,functionsFormatedString = get_functions(get_source_file,project_root_module_name)
+    print(functionsFormatedString[0])
+    response= llm.invoke({"input": functionsFormatedString[0]})
+    save_test_to_file(get_source_file, functionsWithImport[0].get('name', 'noNameFound'), response['text']['code'])
     
 
-# save_test_to_file()
-
-
+generate_test_with_LLM()
 
 
 
@@ -109,35 +104,3 @@ response= llm.invoke({"input": functionsDetails[0]})
 #     response= llm.invoke({"input": input})
 #     code = response['text']['code']
 #     return code
-
-def save_test_to_file():
-    # Get the base name of the source file with extension
-    base_name_with_extension = os.path.basename(get_source_file)
-    # Split the base name and the extension
-    file_name, file_extension = os.path.splitext(base_name_with_extension)
-    
-    print(f"File name: {file_name}")
-    print(f"Extension: {file_extension}")
-    
-    file_name_with_extension = file_name + file_extension
-    print(f"File name with extension: {file_name_with_extension}")
-
-
-    file_name = os.path.splitext(os.path.basename(get_source_file))[0]
-    print(file_name)
-    # Create the directory if it doesn't exist
-    test_file_dir = os.path.join(test_dir, file_name)
-    os.makedirs(test_file_dir, exist_ok=True)
-    
-    test_file_path = os.path.join(test_file_dir+ f'/{func_name}.py')
-    
-    with open(test_file_path, 'w') as f:
-        f.write(code)
-    f.close()
-    
-
-save_test_to_file()
-
-
-
-
