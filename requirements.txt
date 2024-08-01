@@ -12,6 +12,7 @@ pyjwt
 pytest
 pytest-cov
 pytest-mock
+pytest-asyncio
 langchain_openai
 langchain
 langchain_core

@@ -1,9 +1,9 @@
 from setup import llm
 import ast
 import os
-from functionGraber import get_functions_and_imports, format_functions_as_string
+from functionGraber import get_functions_and_imports, format_function_as_string
 
-from testGenConfig import source_dir, test_dir,project_root_module_name
+from testGenConfig import source_dir, test_dir,project_root_module_name,root_dir
     
     
 def save_test_to_file(source_file, func_name, generated_test_code):
@@ -20,7 +20,7 @@ def save_test_to_file(source_file, func_name, generated_test_code):
     print(file_name)
     # Create the directory if it doesn't exist
     test_file_dir = os.path.join(test_dir, file_name)
-    os.makedirs(test_file_dir+"_test", exist_ok=True)
+    os.makedirs(test_file_dir, exist_ok=True)
     
     test_file_path = os.path.join(test_file_dir+ f'/{func_name}_test.py')
     
@@ -29,17 +29,21 @@ def save_test_to_file(source_file, func_name, generated_test_code):
     f.close()
     
 
-def get_functions(source_file,project_root_module_name):
-    functions= get_functions_and_imports(source_file,project_root_module_name)
-    formatted_string = format_functions_as_string(functions)
-    return functions,formatted_string
+# def get_functions(source_file,project_root_module_name):
+#     functions= get_functions_and_imports(source_file,project_root_module_name)
+#     formatted_string = format_functions_as_string(functions)
+#     return functions,formatted_string
 get_source_file = os.path.join(source_dir, 'services', 'user_services.py')  
 def generate_test_with_LLM():
     
-    functionsWithImport,functionsFormatedString = get_functions(get_source_file,project_root_module_name)
-    print(functionsFormatedString[0])
-    response= llm.invoke({"input": functionsFormatedString[0]})
-    save_test_to_file(get_source_file, functionsWithImport[0].get('name', 'noNameFound'), response['text']['code'])
+    
+    functionsWithImport=get_functions_and_imports(get_source_file,project_root_module_name,root_dir)
+    # print(functionsWithImport)
+    for function in functionsWithImport:
+        formatted_string = format_function_as_string(function)    
+        print(formatted_string)
+        response = llm.invoke({"input": formatted_string})
+        save_test_to_file(get_source_file, function.get('name', 'noNameFound'), response['text']['code'])
     
 
 generate_test_with_LLM()

@@ -30,16 +30,7 @@ chat = ChatOpenAI(
 
 prompt_template = """You are tasked with generating a clear and concise description of a function and corresponding unit tests. The procedure is given in the Description Phase and the Unit Test Generation Phase. Follow them sequentially:
  
-###Description Phase:###
-Generate a concise description of the function's main purpose, inputs (including variable types), execution process, and output.
-The description should be formal and clearly capture the essence of the function.
- 
-Generate a concise description of the function's main purpose, inputs (including variable types), execution process, and output.
-The description should be formal and clearly capture the essence of the function.
-Utilize pytest and mocker for data-driven testing.
-Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
-Include unit test code and inline documentation explaining the test purpose and logic.
-Use mocks to simulate external dependencies accurately.
+
  
 ###Unit Test Generation Phase:###
  
@@ -53,6 +44,7 @@ Use mocks to simulate external dependencies accurately.
  
 In your response, follow the exact format shown in the example below.
 Escape all special characters in the code (e.g., double quotes, single quotes, new lines) with a backslash.
+Make sure to include the appropriate import statements for the function and its dependencies.
  
 Example:
  
