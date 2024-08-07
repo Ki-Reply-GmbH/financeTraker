@@ -39,6 +39,6 @@ async def logout():
 
 @router.get("/user/authTest")
 async def read_users_me(current_user: dict = Depends(get_current_user)):
-    logger.info(f"testing authentication")
+logger.info("testing authentication")
     logger.info(f"current_user: {current_user}")
     return current_user
