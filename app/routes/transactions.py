@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("/transactions")
 def get_transactions(current_user: str = Depends(get_current_user)):
-    user_id = current_user["user"].id
+user_id = int(current_user["user"].id)
     logger.info(f"Current user: {user_id}")
     transactions=get_all_transactions_by_user(user_id)
     transactions_dict = [transaction.dict() for transaction in transactions]
