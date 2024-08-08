@@ -113,13 +113,14 @@ for (const cookie of cookieArr) {
                 })
                     .then(response => response.json())
                     .then(transactions => {
-                       var transactionsTable = document.getElementById('transactionsTable');
-                        var tbody = transactionsTable.getElementsByTagName('tbody')[0];
-                        tbody.innerHTML = '';  // clear the tbody
-                        if (transactions.length === 0) {
-                            transactionsList.innerHTML = '<p>No transactions to display.</p>';
-                        } else {
-                            var transactionsTable = document.getElementById('transactionsTable');
+var transactionsTable = document.getElementById('transactionsTable');
+var tbody = transactionsTable.getElementsByTagName('tbody')[0];
+tbody.innerHTML = '';  // clear the tbody
+if (transactions.length === 0) {
+    transactionsList.innerHTML = '<p>No transactions to display.</p>';
+} else {
+    tbody.innerHTML = '';  // clear the tbody
+
                             var tbody = transactionsTable.getElementsByTagName('tbody')[0];
                             tbody.innerHTML = '';  // clear the tbody
 
