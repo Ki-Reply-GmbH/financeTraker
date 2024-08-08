@@ -36,7 +36,7 @@ async def create_transaction(transaction: TransactionCreate, current_user: str =
         category = create_catagory(CatagoryCreate(name=category_name))
         transaction.category = category
     try:
-        created_transaction = create_new_transaction(transaction,user_id)
+create_new_transaction(transaction, user_id)
     except Exception as e:
         logger.error(f"Error creating transaction: {e}")
         raise HTTPException(status_code=500, detail="Error creating transaction")
