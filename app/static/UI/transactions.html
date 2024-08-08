@@ -223,7 +223,11 @@ var tbody = transactionsTable.getElementsByTagName('tbody')[0];
                     .then(response => response.json())
                     .then(data => {
                         // Handle response from backend
-                        console.log(data);
+                        if (data.success) {
+                            alert('Entry added successfully!');
+                        } else {
+                            alert('Failed to add entry: ' + data.message);
+                        }
                         // TODO: Handle success or error response
                             // Close the modal
                         var myModal = bootstrap.Modal.getInstance(document.getElementById('entryModal'));
