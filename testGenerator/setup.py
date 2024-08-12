@@ -10,11 +10,11 @@ if api_key is None:
 from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts.chat import ChatPromptTemplate
-
+from langchain.prompts.prompt import PromptTemplate
 from langchain_core.messages import SystemMessage
 
 from langchain_core.prompts import HumanMessagePromptTemplate
-
+from langchain_core.prompts import FewShotChatMessagePromptTemplate
 
 
 
@@ -28,17 +28,17 @@ chat = ChatOpenAI(
     )
 
 
-prompt_template = """You are tasked with generating a clear and concise description of a function and corresponding unit tests. The procedure is given in the Description Phase and the Unit Test Generation Phase. Follow them sequentially:
+prompt_template = """You are tasked with generating a clear and concise description of a function and corresponding unit tests. / 
+                    The procedure is given in the *** Unit Test Generation Phase ***. Follow them sequentially: /
  
 
+### Unit Test Generation Phase: ###
  
-###Unit Test Generation Phase:###
- 
-Based on the initial description, craft corresponding unit tests from the  Human Message.
-Utilize pytest and mocker for data-driven testing.
-Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
-Include unit test code and inline documentation explaining the test purpose and logic.
-Use mocks to simulate external dependencies accurately.
+- Based on the initial description, craft corresponding unit tests from the  Human Message.
+- Utilize pytest and mocker for data-driven testing.
+- Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
+- Include unit test code and inline documentation explaining the test purpose and logic.
+- Use mocks to simulate external dependencies accurately.
  
 ###Important Instructions:###
  
@@ -46,26 +46,80 @@ In your response, follow the exact format shown in the example below.
 Escape all special characters in the code (e.g., double quotes, single quotes, new lines) with a backslash.
 Make sure to include the appropriate import statements for the function and its dependencies.
  
-Example:
- 
-Example: 
-{
-    "function_description": "GENERATED DESCRIPTION HERE",
-    "code": "GENERATED CODE HERE"
-} 
- 
-sample User Input: input is defined in  Human Message.
- 
- 
-sample LLM Response:
- 
-{
-    "function_description": "This function registers a new user. It takes a single input `user` of type `UserCreate`, attempts to create the user, and returns a success message. If an error occurs, it logs the error and raises an HTTP 500 exception.",
-    "code": "import pytest\\n\\nasync def test_register_user(mocker):\\n\\t# Given\\n\\tuser_create_instance = UserCreate(username=\\\"testuser\\\", password=\\\"testpassword\\\")\\n\\tmock_create_user = mocker.patch('path.to.create_user')\\n\\tmock_logger = mocker.patch('path.to.logger.error')\\n\\tmock_http_exception = mocker.patch('path.to.HTTPException')\\n\\n\\t# When\\n\\tresponse = await register_user(user_create_instance)\\n\\n\\t# Then\\n\\tmock_create_user.assert_called_once_with(user_create_instance)\\n\\tassert response == {\\\"message\\\": \\\"User registered successfully\\\"}\\n\\n\\t# When Exception Occurs\\n\\tmock_create_user.side_effect = Exception(\\\"Error\\\")\\n\\twith pytest.raises(HTTPException) as exc_info:\\n\\t\\tawait register_user(user_create_instance)\\n\\tmock_logger.assert_called_once()\\n\\tassert exc_info.value.status_code == 500\\n\\tassert exc_info.value.detail == \\\"Error registering user\\\""
-}
- 
+
  
 """
+llm_response_examples = [
+    {
+        "commoncode": """ 
+        
+        import pytest
+        from app.models.user import UserCreate
+        from app.services.user_services import create_user
+        from app.models.models import get_db
+        from sqlalchemy.orm import Session
+
+        @pytest.fixture
+        def mock_db_session(mocker):
+            session_mock = mocker.MagicMock(spec=Session)
+            session_mock.add = mocker.MagicMock()
+            session_mock.commit = mocker.MagicMock()
+            session_mock.refresh = mocker.MagicMock()
+            yield session_mock
+
+        @pytest.fixture
+        def mock_get_db(mock_db_session):
+            with mocker.patch('app.models.models.get_db', return_value=mock_db_session) as mock:
+                yield mock
+                
+        """,
+        "test1" : """
+        
+        @pytest.mark.asyncio
+            async def test_create_user_success(mock_get_db):
+            
+            user_data = UserCreate(name="John Doe", email="john.doe@example.com", password="securepassword123")
+            expected_user = user_data.dict()
+
+            
+            result_user = create_user(user_data)
+
+            
+            mock_get_db().add.assert_called_once_with(expected_user)
+            mock_get_db().commit.assert_called_once()
+            mock_get_db().refresh.assert_called_once_with(expected_user)
+            assert result_user == expected_user
+
+        """,
+        "test2" : """
+        
+        @pytest.mark.asyncio
+        async def test_create_user_failure(mock_get_db):
+            
+            user_data = UserCreate(name="John Doe", email="john.doe@example.com", password="securepassword123")
+            mock_get_db().add.side_effect = Exception("Database Error")
+
+            
+            with pytest.raises(Exception) as exc_info:
+                create_user(user_data)
+            assert str(exc_info.value) == "Database Error"
+        
+        """,
+    },
+    
+    
+]
+
+example_prompt = prompt_template(
+    input_variables=["Commoncode","Test1", "Test2"],
+    template = "{Commoncode}\n{Test1}\n{Test2}\n"
+)
+
+few_shot_prompt = FewShotChatMessagePromptTemplate(
+    examples= llm_response_examples,
+    example_prompt= example_prompt
+)
+
 prompt = ChatPromptTemplate.from_messages(
 
     [
@@ -79,7 +133,7 @@ prompt = ChatPromptTemplate.from_messages(
             )
 
         ),
-
+        few_shot_prompt,
         HumanMessagePromptTemplate.from_template("{input}"),
 
     ]
