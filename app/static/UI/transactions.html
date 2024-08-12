@@ -119,7 +119,7 @@ tbody.innerHTML = '';  // clear the tbody
 if (transactions.length === 0) {
     transactionsList.innerHTML = '<p>No transactions to display.</p>';
 } else {
-    tbody.innerHTML = '';  // clear the tbody
+let transactionsTable = document.getElementById('transactionsTable');
 
                             var tbody = transactionsTable.getElementsByTagName('tbody')[0];
                             tbody.innerHTML = '';  // clear the tbody
