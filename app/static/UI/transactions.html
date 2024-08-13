@@ -119,8 +119,7 @@ for (var cookiePair of cookieArr) {
                         if (transactions.length === 0) {
                             transactionsList.innerHTML = '<p>No transactions to display.</p>';
                         } else {
-var tbody = document.getElementById('transactionsTable').getElementsByTagName('tbody')[0];
-
+                            tbody = transactionsTable.getElementsByTagName('tbody')[0];
                             var tbody = transactionsTable.getElementsByTagName('tbody')[0];
                             tbody.innerHTML = '';  // clear the tbody
 
