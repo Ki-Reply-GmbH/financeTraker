@@ -64,7 +64,7 @@ async def get_categories():
 
 @router.post("/categories")
 async def create_categories():
-    categories = create_categories()
+    return JSONResponse(status_code=201)
     return JSONResponse(status_code=201)
 
 
