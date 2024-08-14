@@ -22,7 +22,7 @@ from sqlalchemy import create_engine, MetaData
 
 database = Database(DATABASE_URL)
 
-# meta = MetaData()
+database = Database(DATABASE_URL)
 
 # meta.reflect(bind=engine)
 
