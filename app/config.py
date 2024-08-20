@@ -20,7 +20,7 @@ from sqlalchemy import create_engine, MetaData
 
 # DELETE all data from DBif necessary
 
-# engine = create_engine(DATABASE_URL)
+database = Database(DATABASE_URL)
 
 # meta = MetaData()
 
