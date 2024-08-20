@@ -93,12 +93,12 @@
     <script>
         function getCookie(name) {
                 var cookieArr = document.cookie.split(";");
-                for (var i = 0; i < cookieArr.length; i++) {
-                    var cookiePair = cookieArr[i].split("=");
-                    if (name == cookiePair[0].trim()) {
-                        return decodeURIComponent(cookiePair[1]);
-                    }
-                }
+for (var cookiePair of cookieArr) {
+    var pair = cookiePair.split("=");
+    if (name == pair[0].trim()) {
+        return decodeURIComponent(pair[1]);
+    }
+}
                 return null;
             }
 
