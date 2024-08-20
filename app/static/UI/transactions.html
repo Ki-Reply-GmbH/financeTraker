@@ -223,7 +223,11 @@ let tbody = transactionsTable.getElementsByTagName('tbody')[0];
                         // Handle response from backend
                         console.log(data);
                         // TODO: Handle success or error response
-                            // Close the modal
+if (data.success) {
+    console.log('Entry saved successfully:', data);
+} else {
+    console.error('Error saving entry:', data.message);
+}
                         var myModal = bootstrap.Modal.getInstance(document.getElementById('entryModal'));
                         myModal.hide();
 
