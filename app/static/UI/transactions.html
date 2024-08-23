@@ -218,17 +218,26 @@
                     .then(response => response.json())
                     .then(data => {
                         // Handle response from backend
-                        console.log(data);
-                        // TODO: Handle success or error response
-                            // Close the modal
-                        var myModal = bootstrap.Modal.getInstance(document.getElementById('entryModal'));
-                        myModal.hide();
-
-                        // Refresh the page
-                        location.reload();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
+                                    })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            // Handle response from backend
+                                            console.log(data);
+                                            if (data.success) {
+                                                // Close the modal
+                                                var myModal = bootstrap.Modal.getInstance(document.getElementById('entryModal'));
+                                                myModal.hide();
+                    
+                                                // Refresh the page
+                                                location.reload();
+                                            } else {
+                                                // Handle error response
+                                                console.error('Error:', data.message);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                        });
                         // TODO: Handle error
                     });
             });
