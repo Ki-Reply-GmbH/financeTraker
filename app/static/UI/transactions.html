@@ -230,15 +230,15 @@
                     
                                                 // Refresh the page
                                                 location.reload();
-                                            } else {
-                                                // Handle error response
-                                                console.error('Error:', data.message);
-                                            }
-                                        })
-                                        .catch(error => {
-                                            console.error('Error:', error);
-                                        });
-                        // TODO: Handle error
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                                alert('An error occurred while processing your request. Please try again later.');
+                                            });
+                                    });
+                        
+                                    // JavaScript function to show/hide new category input field
+                                    document.getElementById('entryCategory').addEventListener('change', function () {
                     });
             });
 
