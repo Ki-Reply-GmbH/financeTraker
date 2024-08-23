@@ -119,9 +119,9 @@
                         if (transactions.length === 0) {
                             transactionsList.innerHTML = '<p>No transactions to display.</p>';
                         } else {
+                            var transactionsTable = document.getElementById('transactionsTable');
                             var tbody = transactionsTable.getElementsByTagName('tbody')[0];
                             tbody.innerHTML = '';  // clear the tbody
-
                             // Create table rows
                             transactions.forEach(transaction => {
                                 var row = tbody.insertRow(-1);
