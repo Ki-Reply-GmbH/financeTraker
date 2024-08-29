@@ -28,7 +28,9 @@ chat = ChatOpenAI(
     )
 
 
-prompt_template = """You are tasked with generating a clear and concise description of a function and corresponding unit tests. / 
+prompt_template = 
+
+"""You are tasked with generating a clear and concise description of a function and corresponding unit tests. / 
                     The procedure is given in the *** Unit Test Generation Phase ***. Follow them sequentially: /
  
 
@@ -45,13 +47,12 @@ prompt_template = """You are tasked with generating a clear and concise descript
 In your response, follow the exact format shown in the example below.
 Escape all special characters in the code (e.g., double quotes, single quotes, new lines) with a backslash.
 Make sure to include the appropriate import statements for the function and its dependencies.
- 
 
- 
-"""
-llm_response_examples = [
-    {
-        "commoncode": """ 
+### Examples ###
+
+*** Example 1 ***
+{
+        "commoncode": ""
         
         import pytest
         from app.models.user import UserCreate
@@ -72,8 +73,8 @@ llm_response_examples = [
             with mocker.patch('app.models.models.get_db', return_value=mock_db_session) as mock:
                 yield mock
                 
-        """,
-        "test1" : """
+        "",
+        "test1" : ""
         
         @pytest.mark.asyncio
             async def test_create_user_success(mock_get_db):
@@ -90,8 +91,8 @@ llm_response_examples = [
             mock_get_db().refresh.assert_called_once_with(expected_user)
             assert result_user == expected_user
 
-        """,
-        "test2" : """
+        "",
+        "test2" : ""
         
         @pytest.mark.asyncio
         async def test_create_user_failure(mock_get_db):
@@ -104,12 +105,14 @@ llm_response_examples = [
                 create_user(user_data)
             assert str(exc_info.value) == "Database Error"
         
-        """,
-    },
-    
-    {
+        "",
+    // Add Aditional test case if necessary
+    }
+
+*** Example 2 ***
+{
         
-        "commoncode" : """
+        "commoncode" : ""
         
         import pytest
         from app.services.user_services import get_user
@@ -129,9 +132,9 @@ llm_response_examples = [
             mocker.patch('app.models.models.get_db', return_value=mock_session)
             return mock_session
         
-        """,
+        "",
         
-        "test1" : """
+        "test1" : ""
         
         def test_get_user_found(mocker, mock_db_session, mock_user):
             # Given
@@ -145,9 +148,9 @@ llm_response_examples = [
             mock_db_session.query.assert_called_once_with(User)
             mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'test@example.com')
  
-        """,
+        "",
         
-        "test2" : """
+        "test2" : ""
         
         def test_get_user_not_found(mocker, mock_db_session):
             # Given
@@ -161,20 +164,15 @@ llm_response_examples = [
             mock_db_session.query.assert_called_once_with(User)
             mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'notfound@example.com')
             
-        """,
-        
+        ""
+        // Add additional test cases if necessary
     }
-]
+ 
 
-example_prompt = prompt_template(
-    input_variables=["Commoncode","Test1", "Test2"],
-    template = "{Commoncode}\n{Test1}\n{Test2}\n"
-)
+"""
 
-few_shot_prompt = FewShotChatMessagePromptTemplate(
-    examples= llm_response_examples,
-    example_prompt= example_prompt
-)
+
+
 
 prompt = ChatPromptTemplate.from_messages(
 
@@ -189,7 +187,7 @@ prompt = ChatPromptTemplate.from_messages(
             )
 
         ),
-        few_shot_prompt,
+        
         HumanMessagePromptTemplate.from_template("{input}"),
 
     ]
