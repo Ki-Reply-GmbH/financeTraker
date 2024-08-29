@@ -8,8 +8,14 @@ class FunctionVisitor(ast.NodeVisitor):
         self.current_function = None
         self.file_name = file_name
         self.project_base_path = project_base_path
-
+        
     def visit_FunctionDef(self, node):
+        self._visit_function(node)
+
+    def visit_AsyncFunctionDef(self, node):
+        self._visit_function(node)
+
+    def _visit_function(self, node):
         function_info = {
             'name': node.name,
             'imports': set(),
@@ -65,10 +71,30 @@ class FunctionVisitor(ast.NodeVisitor):
                 model_definitions[model] = f"# Error: Could not find model file for {model}"
         return model_definitions
 
+
+
+# Walk through the tree and print all node names
+def get_test_functions(file_path):
+    with open(file_path, 'r') as file:
+        file_content = file.read()
+    
+
+    # Parse the file content
+    tree = ast.parse(file_content)
+
+    # Extract function definitions
+    test_functions = [
+        node.name for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith('test_')
+    ]
+
+    return test_functions
+
 def get_functions_and_imports(file_path, app_dir_name, project_base_path):
 
     with open(file_path, 'r') as file:
         tree = ast.parse(file.read(), filename=file_path)
+        
 
     app_dir_index = file_path.lower().index(app_dir_name.lower())
     relative_path = file_path[app_dir_index:]
@@ -77,6 +103,7 @@ def get_functions_and_imports(file_path, app_dir_name, project_base_path):
     module_path = os.path.splitext(relative_path.replace(os.sep, '.'))[0]
     # Ensure no leading dots
     module_path = module_path.lstrip('.')
+
 
     visitor = FunctionVisitor(module_path, project_base_path)
     visitor.visit(tree)
