@@ -1,22 +1,260 @@
-self_healing_prompt_template = """
 
-You are tasked with debugging failing unit tests. Below is the information required:
+from langchain.prompts.chat import ChatPromptTemplate
+from langchain_core.messages import SystemMessage
+from langchain_core.prompts import HumanMessagePromptTemplate
+from langchain import PromptTemplate
 
-Function Code: This is the original code of the function being tested.
-Test Code: This is the generated unit test code.
-Test Run Output: This includes the error messages and traceback from running the tests.
+def setup_test_generation_case_prompt():
+    test_case_generation_prompt_template = """You are tasked with generating a clear and concise description of a function and corresponding unit tests. /
+                                           The procedure is given in the Description Phase and the Unit Test Generation Phase. Follow them sequentially: /
+ 
+        ###Unit Test Generation Phase:###
+ 
+        Based on the initial description, craft corresponding unit tests from the Human Message.
+        Utilize pytest and mocker for data-driven testing.
+        Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
+        Include unit test code and inline documentation explaining the test purpose and logic.
+        Use mocks to simulate external dependencies accurately.
+ 
+        ###Important Instructions:###
+ 
+        In your response, follow the exact format shown in the example below.
+        Escape all special characters in the code (e.g., double quotes, single quotes, new lines) with a backslash.
+        Make sure to include the appropriate import statements for the function and its dependencies.
+ 
+        Example:
+ 
+        Example: 
+        {
+            "function_description": "GENERATED DESCRIPTION HERE",
+            "code": "GENERATED CODE HERE"
+        } 
+ 
+        sample User Input: input is defined in Human Message.
+ 
+        sample LLM Response:
+ 
+        {
+            "function_description": "This function registers a new user. It takes a single input `user` of type `UserCreate`, attempts to create the user, and returns a success message. If an error occurs, it logs the error and raises an HTTP 500 exception.",
+            "code": "import pytest\\n\\nasync def test_register_user(mocker):\\n\\t# Given\\n\\tuser_create_instance = UserCreate(username=\\\"testuser\\\", password=\\\"testpassword\\\")\\n\\tmock_create_user = mocker.patch('path.to.create_user')\\n\\tmock_logger = mocker.patch('path.to.logger.error')\\n\\tmock_http_exception = mocker.patch('path.to.HTTPException')\\n\\n\\t# When\\n\\tresponse = await register_user(user_create_instance)\\n\\n\\t# Then\\n\\tmock_create_user.assert_called_once_with(user_create_instance)\\n\\tassert response == {\\\"message\\\": \\\"User registered successfully\\\"}\\n\\n\\t# When Exception Occurs\\n\\tmock_create_user.side_effect = Exception(\\\"Error\\\")\\n\\twith pytest.raises(HTTPException) as exc_info:\\n\\t\\tawait register_user(user_create_instance)\\n\\tmock_logger.assert_called_once()\\n\\tassert exc_info.value.status_code == 500\\n\\tassert exc_info.value.detail == \\\"Error registering user\\\""
+        }
+    """
 
-Function Code:{funtion_code}
-Test Code:{test_code}
-Test Run Output:{test_run_output}
-###Instructions:
-Analyze the provided function code, test code, and test run output.
-Identify the root cause of the test failures.
-Regenerate the corrected unit test code if necessary.
-Your response must be structured as shown in the example below.
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=test_case_generation_prompt_template),
+            HumanMessagePromptTemplate.from_template("{input}"),
+        ]
+    )
+    
+    
 
-{
-    "corrected_code": "CORRECTED CODE HERE"
-}
+    return prompt
 
-"""
+
+def setup_test_generation_case_fewshot_prompt():
+    
+    test_case_generation_fewshot_prompt_template = """ You are tasked with generating a clear and concise description of a function and corresponding unit tests. /
+                                                   The procedure is given in the *** Unit Test Generation Phase *** and *** Important Instructions:*** . Follow  /
+                                                   them sequentially: /
+ 
+    ###Unit Test Generation Phase:###
+ 
+        - Based on the initial description, craft corresponding unit tests from the Human Message.
+        - Utilize pytest and mocker for data-driven testing.
+        - Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
+        - Include unit test code and inline documentation explaining the test purpose and logic.
+        - Use mocks to simulate external dependencies accurately.
+ 
+    ###Important Instructions:###
+ 
+        In your response, follow the exact format shown in the ### Examples ### below. Analyze both examples where:
+        
+        - commoncode : is the code segment which is common in differnt files and differnt functions as well.
+        - test1 : is the first test code which has to be precisely generated by you the given function.
+        - test2 : is the second test code which has to be precisely generated by you for the given function.
+        
+        Also you can add additional test code like test3 , test4 if you think it is necessary.
+        
+        Escape all special characters in the code (e.g., double quotes, single quotes, new lines) with a backslash.
+        Make sure to include the appropriate import statements for the function and its dependencies.
+ 
+        Example:
+ 
+    ### Examples ###
+
+    *** Example 1 ***
+    {
+        "commoncode": ""
+        
+        import pytest
+        from app.models.user import UserCreate
+        from app.services.user_services import create_user
+        from app.models.models import get_db
+        from sqlalchemy.orm import Session
+
+        @pytest.fixture
+        def mock_db_session(mocker):
+            session_mock = mocker.MagicMock(spec=Session)
+            session_mock.add = mocker.MagicMock()
+            session_mock.commit = mocker.MagicMock()
+            session_mock.refresh = mocker.MagicMock()
+            yield session_mock
+
+        @pytest.fixture
+        def mock_get_db(mock_db_session):
+            with mocker.patch('app.models.models.get_db', return_value=mock_db_session) as mock:
+                yield mock
+                
+        "",
+        "test1" : ""
+        
+        @pytest.mark.asyncio
+            async def test_create_user_success(mock_get_db):
+            
+            user_data = UserCreate(name="John Doe", email="john.doe@example.com", password="securepassword123")
+            expected_user = user_data.dict()
+
+            
+            result_user = create_user(user_data)
+
+            
+            mock_get_db().add.assert_called_once_with(expected_user)
+            mock_get_db().commit.assert_called_once()
+            mock_get_db().refresh.assert_called_once_with(expected_user)
+            assert result_user == expected_user
+
+        "",
+        "test2" : ""
+        
+        @pytest.mark.asyncio
+        async def test_create_user_failure(mock_get_db):
+            
+            user_data = UserCreate(name="John Doe", email="john.doe@example.com", password="securepassword123")
+            mock_get_db().add.side_effect = Exception("Database Error")
+
+            
+            with pytest.raises(Exception) as exc_info:
+                create_user(user_data)
+            assert str(exc_info.value) == "Database Error"
+        
+        "",
+    // Add Aditional test case if necessary
+    }
+
+    *** Example 2 ***
+    {
+        
+        "commoncode" : ""
+        
+        import pytest
+        from app.services.user_services import get_user
+        from app.models.models import User, get_db
+        from unittest.mock import MagicMock
+
+        @pytest.fixture
+        def mock_user():
+            return User(email='test@example.com', name='Test User')
+
+        @pytest.fixture
+        def mock_db_session(mocker):
+            mock_session = mocker.MagicMock()
+            mock_query = mocker.MagicMock()
+            mock_session.query.return_value = mock_query
+            mock_query.filter.return_value = mock_query
+            mocker.patch('app.models.models.get_db', return_value=mock_session)
+            return mock_session
+        
+        "",
+        
+        "test1" : ""
+        
+        def test_get_user_found(mocker, mock_db_session, mock_user):
+            # Given
+            mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user
+
+            # When
+            result = get_user('test@example.com')
+
+            # Then
+            assert result == mock_user
+            mock_db_session.query.assert_called_once_with(User)
+            mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'test@example.com')
+ 
+        "",
+        
+        "test2" : ""
+        
+        def test_get_user_not_found(mocker, mock_db_session):
+            # Given
+            mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+            # When
+            result = get_user('notfound@example.com')
+
+            # Then
+            assert result is None
+            mock_db_session.query.assert_called_once_with(User)
+            mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'notfound@example.com')
+            
+        ""
+        // Add additional test cases if necessary
+    }
+ 
+        sample User Input: input is defined in Human Message.
+ 
+        sample LLM Response:
+ 
+        {
+            "function_description": Give the function description ..,
+            "commoncode": Generate the common code snippet ..
+            "test1" : Generate the first test code ...
+            "test2" : Generate the second test code ...
+            
+            // Add Additonal test code if necessary
+        }
+    """
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=test_case_generation_fewshot_prompt_template),
+            HumanMessagePromptTemplate.from_template("{input}"),
+        ]
+    )
+    
+    return prompt
+
+
+
+def setup_self_healing_prompt_template():
+    self_healing_prompt_template = """
+    You are tasked with debugging failing unit tests. Below is the information required:
+
+    Function Code: This is the original code of the function being tested.
+    Test Code: This is the generated unit test code.
+    Test Run Output: This includes the error messages and traceback from running the tests.
+
+    Function Code:{function_code}
+    Test Code:{test_code}
+    Test Run Output:{test_run_output}
+    
+    ### Instructions:
+    Analyze the provided function code, test code, and test run output.
+    Identify the root cause of the test failures.
+    Regenerate the corrected unit test code if necessary.
+    Your response must be structured as shown in the example below.
+
+    {
+        "corrected_code": "CORRECTED CODE HERE"
+    }
+    """
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=self_healing_prompt_template),
+            HumanMessagePromptTemplate.from_template("{input}"),
+        ]
+    )
+
+    return prompt
+

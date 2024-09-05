@@ -1,3 +1,104 @@
+from llm_setup import setup_llm
+from prompts import setup_test_generation_case_prompt, setup_test_generation_case_fewshot_prompt
+from output_parser import CustomCodeOutputParser, CustomCodeOutputParserForFewShot
+from langchain.chains import LLMChain
+
+
+
+
+# Setup the LLM model
+llm = setup_llm()
+
+# Setup the prompt
+prompt = setup_test_generation_case_fewshot_prompt()
+
+# Setup the output parser
+output_parser = CustomCodeOutputParserForFewShot()
+
+# Create the LLMChain
+chain = LLMChain(llm=llm, prompt=prompt, output_parser=output_parser)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+
 import getpass
 import os
 import dotenv
@@ -104,3 +205,5 @@ class CustomCodeOutputParser(JsonOutputParser):
     
 outputParser = CustomCodeOutputParser()
 llm = LLMChain(llm=chat, prompt=prompt,output_parser=outputParser)
+
+'''
