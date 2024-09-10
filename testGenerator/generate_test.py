@@ -103,7 +103,7 @@ def generate_test_with_LLM():
             break
         break
 
-
+'''
 def extract_code_from_llm_response(response):
     """
     Extracts and concatenates the different sections of the LLM response, including 'commoncode', 'test1', 'test2', etc.
@@ -134,9 +134,111 @@ def extract_code_from_llm_response(response):
     # return full_code.strip()  # Return final concatenated code without extra trailing spaces
     return full_code  # Return final concatenated code without extra trailing spaces
 
+'''
 
 
+import json
 
+def extract_code_from_llm_response(response):
+    """
+    Extracts and concatenates the different sections of the LLM response, including 'commoncode', 'test1', 'test2', etc.
+    Uses a for loop to count and process the test cases. Handles missing or None values gracefully.
+
+    Args:
+        response (str): A JSON string containing the response with keys like 'commoncode', 'test1', 'test2', etc.
+    
+    Returns:
+        str: The concatenated code with commoncode and test cases properly formatted.
+    """
+    # Initialize an empty string for the full code
+    full_code = ""
+    
+    try:
+        # Parse the response into a Python dictionary
+        response_dict = json.loads(response)
+        
+        # Extract the common code (imports and shared fixtures)
+        common_code = response_dict.get('text', {}).get('commoncode')
+        if common_code:
+            common_code = common_code.strip()  # Remove surrounding spaces
+            print(f"Common code extracted:\n{common_code}")
+            full_code += common_code + "\n\n"  # Add common code with spacing
+        else:
+            print("No common code found in response")
+        
+        # Initialize a list to gather all 'test' keys
+        test_keys = [key for key in response_dict['text'] if key.startswith("test") and response_dict['text'][key] is not None]
+
+        # Sort the test keys by the numeric value of their name (test1, test2, ...)
+        sorted_test_keys = sorted(test_keys, key=lambda x: int(x.replace("test", "")))
+
+        # Iterate over the test keys using a for loop
+        for test_key in sorted_test_keys:  # Sorted ensures processing in correct order
+            test_code = response_dict['text'][test_key].strip()  # Extract and strip each test case
+            print(f"{test_key} extracted:\n{test_code}")
+            # Ensure the test code is properly indented and formatted
+            full_code += test_code + "\n\n"
+        
+        print(f"Final concatenated code:\n{full_code}")
+        return full_code.strip()  # Return final concatenated code without extra trailing spaces
+    
+    except json.JSONDecodeError:
+        print("Invalid JSON format in response.")
+        return ""
+    except KeyError as e:
+        print(f"Missing key in the response: {e}")
+        return ""
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return ""
+
+
+import os
+
+def save_test_to_file(function_name, test_code):
+    """
+    Saves the generated test code to a Python (.py) file and returns the path.
+
+    Args:
+        function_name (str): The name of the function for which tests are generated.
+        test_code (str): The full concatenated test code to be written into the file.
+
+    Returns:
+        str: The path where the test file is saved.
+    """
+    # Construct the test file name and path
+    test_file_name = f"test_{function_name}.py"
+    test_file_path = os.path.join("tests", test_file_name)  # Save in 'tests' folder
+    
+    # Print the path where the file will be saved
+    print(f"Saving test code to: {test_file_path}")
+    
+    # Ensure the directory exists
+    try:
+        os.makedirs(os.path.dirname(test_file_path), exist_ok=True)
+        print(f"Directory created or already exists: {os.path.dirname(test_file_path)}")
+    except Exception as e:
+        print(f"Error creating directory: {e}")
+        return ""
+    
+    # Check if test_code is empty before writing
+    if not test_code.strip():
+        print("Test code is empty. File will not be written.")
+        return ""
+
+    # Write the test code to the file
+    try:
+        with open(test_file_path, 'w') as test_file:
+            test_file.write(test_code)
+        print(f"Test code written successfully to: {test_file_path}")
+    except Exception as e:
+        print(f"Error writing to file: {e}")
+        return ""
+
+    return test_file_path
+
+
+'''
 def save_test_to_file(function_name, test_code):
     """
     Saves the generated test code to a Python (.py) file and returns the path.
@@ -169,7 +271,7 @@ def save_test_to_file(function_name, test_code):
         print(f"Error writing to file: {e}")
 
     return test_file_path
-
+'''
 
   
 
