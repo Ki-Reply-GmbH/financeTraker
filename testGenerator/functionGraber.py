@@ -77,8 +77,7 @@ class FunctionVisitor(ast.NodeVisitor):
 def get_test_functions(file_path):
     with open(file_path, 'r') as file:
         file_content = file.read()
-    
-
+        
     # Parse the file content
     tree = ast.parse(file_content)
 

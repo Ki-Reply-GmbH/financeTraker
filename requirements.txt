@@ -10,7 +10,7 @@ python-dotenv
 fastapi-login
 pyjwt
 pytest
-pytest-cov
+pytest-cov==4.1.0
 pytest-mock
 pytest-asyncio
 langchain_openai

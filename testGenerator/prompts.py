@@ -84,135 +84,36 @@ def setup_test_generation_case_fewshot_prompt():
     ### Examples ###
 
     *** Example 1 ***
+    
     {
-        "commoncode": ""
-        
-        import pytest
-        from app.models.user import UserCreate
-        from app.services.user_services import create_user
-        from app.models.models import get_db
-        from sqlalchemy.orm import Session
-
-        @pytest.fixture
-        def mock_db_session(mocker):
-            session_mock = mocker.MagicMock(spec=Session)
-            session_mock.add = mocker.MagicMock()
-            session_mock.commit = mocker.MagicMock()
-            session_mock.refresh = mocker.MagicMock()
-            yield session_mock
-
-        @pytest.fixture
-        def mock_get_db(mock_db_session):
-            with mocker.patch('app.models.models.get_db', return_value=mock_db_session) as mock:
-                yield mock
-                
-        "",
-        "test1" : ""
-        
-        @pytest.mark.asyncio
-            async def test_create_user_success(mock_get_db):
-            
-            user_data = UserCreate(name="John Doe", email="john.doe@example.com", password="securepassword123")
-            expected_user = user_data.dict()
-
-            
-            result_user = create_user(user_data)
-
-            
-            mock_get_db().add.assert_called_once_with(expected_user)
-            mock_get_db().commit.assert_called_once()
-            mock_get_db().refresh.assert_called_once_with(expected_user)
-            assert result_user == expected_user
-
-        "",
-        "test2" : ""
-        
-        @pytest.mark.asyncio
-        async def test_create_user_failure(mock_get_db):
-            
-            user_data = UserCreate(name="John Doe", email="john.doe@example.com", password="securepassword123")
-            mock_get_db().add.side_effect = Exception("Database Error")
-
-            
-            with pytest.raises(Exception) as exc_info:
-                create_user(user_data)
-            assert str(exc_info.value) == "Database Error"
-        
-        "",
-    // Add Aditional test case if necessary
+        "commoncode": "\nimport pytest\nfrom app.services.user_services import get_user\nfrom app.models.models import User, get_db\nfrom unittest.mock import MagicMock\n\n@pytest.fixture\ndef mock_user():\n    return User(email='test@example.com', name='Test User')\n\n@pytest.fixture\ndef mock_db_session(mocker):\n    mock_session = mocker.MagicMock()\n    mock_query = mocker.MagicMock()\n    mock_session.query.return_value = mock_query\n    mock_query.filter.return_value = mock_query\n    mocker.patch('app.models.models.get_db', return_value=mock_session)\n    return mock_session\n",
+    
+        "test1": "\ndef test_get_user_found(mocker, mock_db_session, mock_user):\n    # Given\n    mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user\n\n    # When\n    result = get_user('test@example.com')\n\n    # Then\n    assert result == mock_user\n    mock_db_session.query.assert_called_once_with(User)\n    mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'test@example.com')\n",
+    
+        "test2": "\ndef test_get_user_not_found(mocker, mock_db_session):\n    # Given\n    mock_db_session.query.return_value.filter.return_value.first.return_value = None\n\n    # When\n    result = get_user('notfound@example.com')\n\n    # Then\n    assert result is None\n    mock_db_session.query.assert_called_once_with(User)\n    mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'notfound@example.com')\n"
     }
+
 
     *** Example 2 ***
     {
-        
-        "commoncode" : ""
-        
-        import pytest
-        from app.services.user_services import get_user
-        from app.models.models import User, get_db
-        from unittest.mock import MagicMock
-
-        @pytest.fixture
-        def mock_user():
-            return User(email='test@example.com', name='Test User')
-
-        @pytest.fixture
-        def mock_db_session(mocker):
-            mock_session = mocker.MagicMock()
-            mock_query = mocker.MagicMock()
-            mock_session.query.return_value = mock_query
-            mock_query.filter.return_value = mock_query
-            mocker.patch('app.models.models.get_db', return_value=mock_session)
-            return mock_session
-        
-        "",
-        
-        "test1" : ""
-        
-        def test_get_user_found(mocker, mock_db_session, mock_user):
-            # Given
-            mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user
-
-            # When
-            result = get_user('test@example.com')
-
-            # Then
-            assert result == mock_user
-            mock_db_session.query.assert_called_once_with(User)
-            mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'test@example.com')
- 
-        "",
-        
-        "test2" : ""
-        
-        def test_get_user_not_found(mocker, mock_db_session):
-            # Given
-            mock_db_session.query.return_value.filter.return_value.first.return_value = None
-
-            # When
-            result = get_user('notfound@example.com')
-
-            # Then
-            assert result is None
-            mock_db_session.query.assert_called_once_with(User)
-            mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'notfound@example.com')
-            
-        ""
-        // Add additional test cases if necessary
+        "commoncode": "\nimport pytest\nfrom app.services.user_services import get_user\nfrom app.models.models import User, get_db\nfrom unittest.mock import MagicMock\n\n@pytest.fixture\ndef mock_user():\n    return User(email='test@example.com', name='Test User')\n\n@pytest.fixture\ndef mock_db_session(mocker):\n    mock_session = mocker.MagicMock()\n    mock_query = mocker.MagicMock()\n    mock_session.query.return_value = mock_query\n    mock_query.filter.return_value = mock_query\n    mocker.patch('app.models.models.get_db', return_value=mock_session)\n    return mock_session\n",
+    
+        "test1": "\ndef test_get_user_found(mocker, mock_db_session, mock_user):\n    # Given\n    mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user\n\n    # When\n    result = get_user('test@example.com')\n\n    # Then\n    assert result == mock_user\n    mock_db_session.query.assert_called_once_with(User)\n    mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'test@example.com')\n",
+    
+        "test2": "\ndef test_get_user_not_found(mocker, mock_db_session):\n    # Given\n    mock_db_session.query.return_value.filter.return_value.first.return_value = None\n\n    # When\n    result = get_user('notfound@example.com')\n\n    # Then\n    assert result is None\n    mock_db_session.query.assert_called_once_with(User)\n    mock_db_session.query.return_value.filter.assert_called_once_with(User.email == 'notfound@example.com')\n"
     }
+
  
-        sample User Input: input is defined in Human Message.
+    sample User Input: input is defined in Human Message.
  
-        sample LLM Response:
+    sample LLM Response:
  
-        {
-            "function_description": Give the function description ..,
-            "commoncode": Generate the common code snippet ..
-            "test1" : Generate the first test code ...
-            "test2" : Generate the second test code ...
+    {
+        "commoncode": Generate the common code snippet,
+        "test1" : Generate the first test code,
+        "test2" : Generate the second test code 
             
-            // Add Additonal test code if necessary
-        }
+    }
     """
 
     prompt = ChatPromptTemplate.from_messages(

@@ -34,7 +34,6 @@ class CustomCodeOutputParserForFewShot(JsonOutputParser):
                 'test2': test2
             }
             result = json.dumps(full_code)
-            
             return result
         except json.JSONDecodeError as e:
             print(f"JSON parsing error: {e}")

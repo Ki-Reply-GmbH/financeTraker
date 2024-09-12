@@ -1,13 +1,14 @@
 from setup import chain
 import ast
 import os
-from functionGraber import get_functions_and_imports, format_function_as_string,get_test_functions
+from functionGraber import get_functions_and_imports, format_function_as_string, get_test_functions
 from test_analyzer import run_tests
 from self_healer import Healer
 import json
-from testGenConfig import source_dir, test_dir,project_root_module_name,root_dir
-    
-    
+from testGenConfig import source_dir, test_dir, project_root_module_name, root_dir
+from worker import capture_working_function_responses, save_response_code 
+
+
 # def save_test_to_file(func_name, generated_test_code):
 #     # Get the base name of the source file with extension
 #     base_name_with_extension = os.path.basename(get_source_file)
@@ -64,8 +65,10 @@ get_source_file = os.path.join(source_dir, 'services', 'user_services.py')
 #         break
 
 def generate_test_with_LLM():
-    functionsWithImport = get_functions_and_imports(get_source_file, project_root_module_name, root_dir)
     
+    
+    functionsWithImport = get_functions_and_imports(get_source_file, project_root_module_name, root_dir)
+    #capture_function_responses()
     for function in functionsWithImport:
         # Format the function as a string
         formatted_string = format_function_as_string(function)    
@@ -73,13 +76,21 @@ def generate_test_with_LLM():
         
         # Invoke the LLM chain and get the response
         response = chain.invoke({"input": formatted_string})
+        #print(response)
         response = json.dumps(response)
         
+        #save response to the worker file
+        
+        
         print(response)
+        
         # Handle multiple parts of the response: "common code", "test1", "test2", etc.
         
         response_code = extract_code_from_llm_response(response)
-        print(f"Respose code is: {response_code}")
+        #response_code_json_to_dict = json.loads(response_code)
+        save_response_code(response_code)
+        
+        print(f"Response code is: {response_code}")
         
         #print(response_code)
         # Save the test to a file
@@ -102,53 +113,15 @@ def generate_test_with_LLM():
             # Break after the first test function for now (as per your original code)
             break
         break
-
-'''
-def extract_code_from_llm_response(response):
-    """
-    Extracts and concatenates the different sections of the LLM response, including 'commoncode', 'test1', 'test2', etc.
-    Ensures the code is saved sequentially with proper indentation.
-    """
-    # Initialize an empty string for the full code
-    full_code = ""
     
-    # Extract the common code (imports and shared fixtures)
-    response_dict = json.loads(response)
-    if response_dict['text']['commoncode'] is not None:
-        common_code = response_dict['text']['commoncode'].strip()  # Remove surrounding spaces
-        print(f"Common code extracted:\n {common_code}")
-        full_code += common_code + "\n\n"  # Add common code with spacing
-    else:
-        print("No common code found in response")
-    
-    # Iterate through test cases like "test1", "test2", and so on
-    test_counter = 1
-    while response_dict['text'][f"test{test_counter}"] is not None:
-        test_code = response_dict['text'][f"test{test_counter}"].strip()  # Extract and strip each test case
-        print(f"Test {test_counter} extracted:\n {test_code}")
-        # Ensure the test code is properly indented and formatted
-        full_code += test_code + "\n\n"
-        test_counter += 1
-    
-    print(f"Final concatenated code: {full_code}")
-    # return full_code.strip()  # Return final concatenated code without extra trailing spaces
-    return full_code  # Return final concatenated code without extra trailing spaces
-
-'''
 
 
-import json
 
 def extract_code_from_llm_response(response):
     """
     Extracts and concatenates the different sections of the LLM response, including 'commoncode', 'test1', 'test2', etc.
     Uses a for loop to count and process the test cases. Handles missing or None values gracefully.
-
-    Args:
-        response (str): A JSON string containing the response with keys like 'commoncode', 'test1', 'test2', etc.
     
-    Returns:
-        str: The concatenated code with commoncode and test cases properly formatted.
     """
     # Initialize an empty string for the full code
     full_code = ""
@@ -193,19 +166,8 @@ def extract_code_from_llm_response(response):
         return ""
 
 
-import os
-
 def save_test_to_file(function_name, test_code):
-    """
-    Saves the generated test code to a Python (.py) file and returns the path.
-
-    Args:
-        function_name (str): The name of the function for which tests are generated.
-        test_code (str): The full concatenated test code to be written into the file.
-
-    Returns:
-        str: The path where the test file is saved.
-    """
+   
     # Construct the test file name and path
     test_file_name = f"test_{function_name}.py"
     test_file_path = os.path.join("tests", test_file_name)  # Save in 'tests' folder
@@ -238,44 +200,11 @@ def save_test_to_file(function_name, test_code):
     return test_file_path
 
 
-'''
-def save_test_to_file(function_name, test_code):
-    """
-    Saves the generated test code to a Python (.py) file and returns the path.
-    """
-    test_file_name = f"test_{function_name}.py"
-    test_file_path = os.path.join("tests", test_file_name)  # Save in 'tests' folder
-    
-    # Print the path where the file will be saved
-    print(f"Saving test code to: {test_file_path}")
-    
-    # Ensure the directory exists
-    try:
-        os.makedirs(os.path.dirname(test_file_path), exist_ok=True)
-        # print(f"Directory created or already exists: {os.path.dirname(test_file_path)}")
-        print(f"Directory created or already exists: {test_file_path}")
-    except Exception as e:
-        print(f"Error creating directory: {e}")
-    
-    # Check if test_code is empty before writing
-    # if not test_code.strip():
-    #     print("Test code is empty. File will not be written.")
-    #     return
+if __name__ == "__main__":
+    capture_working_function_responses()
+    generate_test_with_LLM()
+    save_response_code()
 
-    # Write the test code to the file
-    try:
-        with open(test_file_path, 'w') as test_file:
-            test_file.write(test_code)
-        print(f"Test code written successfully to: {test_file_path}")
-    except Exception as e:
-        print(f"Error writing to file: {e}")
-
-    return test_file_path
-'''
-
-  
-
-generate_test_with_LLM()
 # function_code= '''Function Code:
 # def create_user(user: UserCreate):
 #     with get_db() as db:
