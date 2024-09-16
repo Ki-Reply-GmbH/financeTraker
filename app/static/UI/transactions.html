@@ -239,7 +239,10 @@ if (data.success) {
                         console.error('Error:', error);
                         // TODO: Handle error
                     });
-            });
+                    .catch(error => {
+                        console.error('Error fetching transactions:', error);
+                        alert('Failed to fetch transactions. Please try again later.');
+                    });
 
             // JavaScript function to show/hide new category input field
             document.getElementById('entryCategory').addEventListener('change', function () {
