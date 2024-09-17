@@ -5,6 +5,7 @@ import json
 
 get_source_file = os.path.join(source_dir, 'services', 'user_services.py') 
 
+
 # Capture function responses and print or save them
 def capture_working_function_responses():
     #test_file_path = os.path.join(test_dir, 'path_to_your_test_file.py')  
@@ -28,9 +29,9 @@ def capture_working_function_responses():
     except Exception as e:
         print(f"Error while capturing responses: {e}")
 
+
 def save_response_code(code):
     print(type(code))
-    
     
     global response_code_storage
     
@@ -51,6 +52,12 @@ def save_response_code(code):
     
     #return response_code_storage
 
+def save_failure_summary(summary):
+    
+    global failure_summary_storage
+    failure_summary_storage = summary
+    
+    print(f"Failure summary saved in worker.py:\n{failure_summary_storage}")
 
 # {function_name: {
 #     test_create_user_success: "database not found"

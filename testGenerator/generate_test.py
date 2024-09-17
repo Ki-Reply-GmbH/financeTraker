@@ -6,7 +6,7 @@ from test_analyzer import run_tests
 from self_healer import Healer
 import json
 from testGenConfig import source_dir, test_dir, project_root_module_name, root_dir
-from worker import capture_working_function_responses, save_response_code 
+from worker import capture_working_function_responses, save_response_code, save_failure_summary
 
 
 # def save_test_to_file(func_name, generated_test_code):
@@ -64,6 +64,15 @@ get_source_file = os.path.join(source_dir, 'services', 'user_services.py')
 #             break
 #         break
 
+
+def start_healing(test_function, test_file_path, function_code, test_run_output):
+    # Create a Healer instance
+    healer = Healer(test_function, test_file_path, function_code, test_run_output)
+    # Start the healing process
+    healer.heal()
+
+
+
 def generate_test_with_LLM():
     
     
@@ -109,6 +118,7 @@ def generate_test_with_LLM():
             
             if failure_summary:
                 print("Healing process started")
+                save_failure_summary(failure_summary)
                 # Start the healing process if tests fail
                 start_healing(test_function, test_file_path, function.get('code', 'noCodeFound'), failure_summary)
             
