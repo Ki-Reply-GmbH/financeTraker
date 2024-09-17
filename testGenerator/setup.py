@@ -3,9 +3,6 @@ from prompts import setup_test_generation_case_prompt, setup_test_generation_cas
 from output_parser import CustomCodeOutputParser, CustomCodeOutputParserForFewShot
 from langchain.chains import LLMChain
 
-
-
-
 # Setup the LLM model
 llm = setup_llm()
 

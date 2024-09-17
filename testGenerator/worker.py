@@ -29,14 +29,15 @@ def capture_working_function_responses():
         print(f"Error while capturing responses: {e}")
 
 def save_response_code(code):
+    print(type(code))
     
     
     global response_code_storage
     
     response_code_storage = code
-    print(f"Raw response code before conversion:\n{response_code_storage}")
+    # print(f"Raw response code before conversion:\n{response_code_storage}")
     try:
-        response_code_to_dict = json.loads(response_code_storage)
+        # response_code_to_dict = json.loads(response_code_storage)
         print(f"Response code saved as a dictionary inside worker.py:\n{response_code_to_dict}")
     except json.JSONDecodeError as e:
         print(f"Failed to decode JSON: {e}")
@@ -50,6 +51,11 @@ def save_response_code(code):
     
     #return response_code_storage
 
+
+# {function_name: {
+#     test_create_user_success: "database not found"
+    
+# }}
 
 
 

@@ -33,11 +33,11 @@ from worker import capture_working_function_responses, save_response_code
     
 #     return test_file_path
     
-# def start_healing(test_function, test_file_path, function_code, test_run_output):
-#     # Create a Healer instance
-#     healer = Healer(test_function, test_file_path, function_code, test_run_output)
-#     # Start the healing process
-#     healer.heal()
+def start_healing(test_function, test_file_path, function_code, test_run_output):
+    # Create a Healer instance
+    healer = Healer(test_function, test_file_path, function_code, test_run_output)
+    # Start the healing process
+    healer.heal()
 
 get_source_file = os.path.join(source_dir, 'services', 'user_services.py')  
 
@@ -75,22 +75,24 @@ def generate_test_with_LLM():
         print(f"Formatted function string: {formatted_string}")
         
         # Invoke the LLM chain and get the response
-        response = chain.invoke({"input": formatted_string})
+        response = chain.invoke({"input": formatted_string},return_only_outputs=True)
         #print(response)
         response = json.dumps(response)
         
         #save response to the worker file
         
         
-        print(response)
+        # print(response)
         
         # Handle multiple parts of the response: "common code", "test1", "test2", etc.
         
-        response_code = extract_code_from_llm_response(response)
+        response_code,response_code_dict = extract_code_from_llm_response(response)
+        print(f"Response code extracted:\n{response_code}")
+        print(type(response_code))
         #response_code_json_to_dict = json.loads(response_code)
-        save_response_code(response_code)
+        # save_response_code(response_code_dict)
         
-        print(f"Response code is: {response_code}")
+        # print(f"Response code is: {response_code}")
         
         #print(response_code)
         # Save the test to a file
@@ -125,6 +127,7 @@ def extract_code_from_llm_response(response):
     """
     # Initialize an empty string for the full code
     full_code = ""
+    full_code_dict = {}
     
     try:
         # Parse the response into a Python dictionary
@@ -135,7 +138,9 @@ def extract_code_from_llm_response(response):
         if common_code:
             common_code = common_code.strip()  # Remove surrounding spaces
             print(f"Common code extracted:\n{common_code}")
+            full_code_dict['commoncode'] = common_code
             full_code += common_code + "\n\n"  # Add common code with spacing
+            
         else:
             print("No common code found in response")
         
@@ -149,11 +154,12 @@ def extract_code_from_llm_response(response):
         for test_key in sorted_test_keys:  # Sorted ensures processing in correct order
             test_code = response_dict['text'][test_key].strip()  # Extract and strip each test case
             print(f"{test_key} extracted:\n{test_code}")
+            full_code_dict[test_key] = test_code  # Add the test code to the dictionary
             # Ensure the test code is properly indented and formatted
             full_code += test_code + "\n\n"
         
         print(f"Final concatenated code:\n{full_code}")
-        return full_code.strip()  # Return final concatenated code without extra trailing spaces
+        return full_code.strip(),full_code_dict  # Return final concatenated code without extra trailing spaces
     
     except json.JSONDecodeError:
         print("Invalid JSON format in response.")
