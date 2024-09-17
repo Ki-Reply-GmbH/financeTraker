@@ -13,6 +13,7 @@ def setup_llm():
         max_tokens=MAX_TOKENS_COUNT,
         temperature=TEMPERATURE,
         streaming=STREAMING
+        
     )
     
     return chat
