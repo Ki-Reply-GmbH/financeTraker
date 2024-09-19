@@ -1,4 +1,4 @@
-from functionGraber import get_functions_and_imports, format_function_as_string,get_test_functions
+from functionGraber import get_functions_and_imports, format_function_as_string, get_test_functions
 from testGenConfig import root_dir
 from prompts import setup_self_healing_prompt_template
 

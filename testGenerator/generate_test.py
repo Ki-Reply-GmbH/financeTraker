@@ -7,62 +7,13 @@ from self_healer import Healer
 import json
 from testGenConfig import source_dir, test_dir, project_root_module_name, root_dir
 from worker import capture_working_function_responses, save_response_code, save_failure_summary
-
-
-# def save_test_to_file(func_name, generated_test_code):
-#     # Get the base name of the source file with extension
-#     base_name_with_extension = os.path.basename(get_source_file)
-#     # Split the base name and the extension
-#     file_name, file_extension = os.path.splitext(base_name_with_extension)
-    
-#     file_name_with_extension = file_name + file_extension
-#     print(f"File name with extension: {file_name_with_extension}")
-
-
-#     file_name = os.path.splitext(os.path.basename(get_source_file))[0]
-#     print(file_name)
-#     # Create the directory if it doesn't exist
-#     test_file_dir = os.path.join(test_dir, file_name)
-#     os.makedirs(test_file_dir, exist_ok=True)
-    
-#     test_file_path = os.path.join(test_file_dir+ f'/{func_name}_test.py')
-    
-#     with open(test_file_path, 'w') as f:
-#         f.write(generated_test_code)
-#     f.close()
-    
-#     return test_file_path
-    
-def start_healing(test_function, test_file_path, function_code, test_run_output):
-    # Create a Healer instance
-    healer = Healer(test_function, test_file_path, function_code, test_run_output)
-    # Start the healing process
-    healer.heal()
-
+from self_heal_data_structure import TestFunctionGenerator,GeneratedTestForFunction
+from data_store import test_function_generators
+from pydantic import BaseModel
+from self_heal_data_structure import statusEnum
+import re  
 get_source_file = os.path.join(source_dir, 'services', 'user_services.py')  
 
-# def generate_test_with_LLM():
-    
-    
-#     functionsWithImport=get_functions_and_imports(get_source_file,project_root_module_name,root_dir)
-#     #print(functionsWithImport)
-#     for function in functionsWithImport:
-#         formatted_string = format_function_as_string(function)    
-#         print(formatted_string)
-#         response = chain.invoke({"input": formatted_string})
-        
-#         test_file_path=save_test_to_file(function.get('name', 'noNameFound'), response['text']['code'])
-#         print(test_file_path)
-#         test_functions=get_test_functions(test_file_path)
-
-#         for test_function in test_functions:        
-#             failure_summery=run_tests(test_file_path, test_function)
-#             if failure_summery:
-#                 print("Healing process started")
-#                 start_healing(test_function, test_file_path, function.get('code', 'noCodeFound'), failure_summery)
-            
-#             break
-#         break
 
 
 def start_healing(test_function, test_file_path, function_code, test_run_output):
@@ -74,58 +25,103 @@ def start_healing(test_function, test_file_path, function_code, test_run_output)
 
 
 def generate_test_with_LLM():
+    test_function_generator = TestFunctionGenerator()
+    test_generated = GeneratedTestForFunction()
+    current_function=''
     
+    functionsWithImport  = get_functions_and_imports(get_source_file, project_root_module_name, root_dir)
     
-    functionsWithImport = get_functions_and_imports(get_source_file, project_root_module_name, root_dir)
-    #capture_function_responses()
+
+    
     for function in functionsWithImport:
+        
+        #Save the function inside data structure for further tracking
+        test_function_generator.function_name = function['name']
+        test_function_generator.function_code = function['code']
+        current_function=test_function_generator.function_name
+        
+        #print(f"current function name:\n {current_function}")
         # Format the function as a string
         formatted_string = format_function_as_string(function)    
-        print(f"Formatted function string: {formatted_string}")
+        #print(f"Formatted function string:/n {formatted_string}")
         
         # Invoke the LLM chain and get the response
         response = chain.invoke({"input": formatted_string},return_only_outputs=True)
         #print(response)
         response = json.dumps(response)
         
-        #save response to the worker file
-        
-        
         # print(response)
         
         # Handle multiple parts of the response: "common code", "test1", "test2", etc.
         
         response_code,response_code_dict = extract_code_from_llm_response(response)
-        print(f"Response code extracted:\n{response_code}")
-        print(type(response_code))
+        #print(f"Response code extracted:\n{response_code}")
+        #print(type(response_code))
+        
+        test_code_response = extract_only_test_code_from_llm_response(response)
+        
+        # Iterate over the test cases in the response and store them in the pydantic class
+        for test_key, test_code in test_code_response.items():
+            function_name = re.findall(r'def (\w+)\(', test_code)
+            function_name_str = function_name[0]
+            generated_test = GeneratedTestForFunction(
+                test_function_key=test_key,  # Store the test key (e.g., 'test1')
+                test_function_code=test_code,
+                test_function_generated_name= function_name_str,# Store the test code generated by LLM
+                status=statusEnum.NOT_STARTED  # Assume status is DONE unless errors occur later
+            )
+            # Append the generated test to the list for this function
+            test_function_generator.generated_tests.append(generated_test)
+        
         #response_code_json_to_dict = json.loads(response_code)
         # save_response_code(response_code_dict)
         
-        # print(f"Response code is: {response_code}")
+        #print(f"Response code is in dict: {response_code_dict}")
         
         #print(response_code)
-        # Save the test to a file
-        # test_file_path = save_test_to_file(function.get('name', 'noNameFound'), response_code)
+      
         test_file_path = save_test_to_file(function.get('name'), response_code) #make sure to handle noNameFound
         print(f"Test file saved at: {test_file_path}")
         
         # Get the test functions from the saved file
-        test_functions = get_test_functions(test_file_path)
+        #test_functions = get_test_functions(test_file_path)
 
-        for test_function in test_functions:
+        for generated_test in test_function_generator.generated_tests:
+            test_function_code_name = generated_test.test_function_generated_name
             # Run tests on the function
-            failure_summary = run_tests(test_file_path, test_function)
+            failure_summary = run_tests(test_file_path, test_function_code_name)
             
             if failure_summary:
+                
+                #save_failure_summary(failure_summary)
+                
+                # Update the corresponding test with error information
+                generated_test.test_error = failure_summary
+                generated_test.status = statusEnum.FAILED  # Update status or retry if needed
+                
                 print("Healing process started")
-                save_failure_summary(failure_summary)
                 # Start the healing process if tests fail
-                start_healing(test_function, test_file_path, function.get('code', 'noCodeFound'), failure_summary)
-            
+                start_healing(test_function_code_name, test_file_path, function.get('code', 'noCodeFound'), failure_summary)
+                
+            else:
+                generated_test.status = statusEnum.DONE
+                
             # Break after the first test function for now (as per your original code)
             break
         break
+    print("------")
+    print(f"Function Name: {test_function_generator.function_name}")
+    print(f"Function Code: {test_function_generator.function_code}")
+    print("Generated Tests:")
     
+    for test in test_function_generator.generated_tests:
+        print(f"  Test Function Key: {test.test_function_key}")
+        print(f"  Test Function Code: {test.test_function_code}")
+        print(f"  Test Function Generated Name: {test.test_function_generated_name}")
+        print(f"  Test Error: {test.test_error}")
+        print(f"  Retry Count: {test.retry_count}")
+        print(f"  Status: {test.status}")
+        print("------")
 
 
 
@@ -138,7 +134,7 @@ def extract_code_from_llm_response(response):
     # Initialize an empty string for the full code
     full_code = ""
     full_code_dict = {}
-    
+
     try:
         # Parse the response into a Python dictionary
         response_dict = json.loads(response)
@@ -182,6 +178,52 @@ def extract_code_from_llm_response(response):
         return ""
 
 
+def extract_only_test_code_from_llm_response(response):
+    """
+    Extracts only the test sections ('test1', 'test2', etc.) from the LLM response.
+    Skips 'commoncode' and returns only the test cases in a dictionary.
+    """
+    # Initialize an empty dictionary to store test codes
+    test_code_dict = {}
+
+    try:
+        # Parse the response into a Python dictionary
+        response_dict = json.loads(response)
+        
+        # We are not storing 'commoncode', just printing it for logging/debugging purposes
+        common_code = response_dict.get('text', {}).get('commoncode')
+        if common_code:
+            common_code = common_code.strip()  # Remove surrounding spaces
+            #print(f"Common code extracted (not stored):\n{common_code}")
+        
+        # Collect all test-related keys like 'test1', 'test2', etc.
+        test_keys = [key for key in response_dict['text'] if key.startswith("test") and response_dict['text'][key] is not None]
+
+        # Sort the test keys by numeric value (test1, test2, ...)
+        sorted_test_keys = sorted(test_keys, key=lambda x: int(x.replace("test", "")))
+
+        # Add only test codes to the dictionary
+        for test_key in sorted_test_keys:
+            test_code = response_dict['text'][test_key].strip() 
+            #print("inside the test extarctor")# Clean and extract test code
+            #print(f"{test_key} extracted:\n{test_code}")
+            test_code_dict[test_key] = test_code  # Store only the test code
+        
+        # Return the dictionary of test codes
+        return test_code_dict
+    
+    except json.JSONDecodeError:
+        print("Invalid JSON format in response.")
+        return {}
+    except KeyError as e:
+        print(f"Missing key in the response: {e}")
+        return {}
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return {}
+
+
+
 def save_test_to_file(function_name, test_code):
    
     # Construct the test file name and path
@@ -217,54 +259,10 @@ def save_test_to_file(function_name, test_code):
 
 
 if __name__ == "__main__":
-    capture_working_function_responses()
+    # capture_working_function_responses()
     generate_test_with_LLM()
-    save_response_code()
+   # save_response_code()
 
-# function_code= '''Function Code:
-# def create_user(user: UserCreate):
-#     with get_db() as db:
-#         db_user = models.User(**user.model_dump())
-#         db.add(db_user)
-#         db.commit()
-#         db.refresh(db_user)
-#         return db_user
-
-# Modules and Imports:
-# - Function to Test: app.services.user_services.create_user
-# - Dependencies:
-#   - app.models.models
-#   - app.models.models.get_db
-#   - app.models.user.UserCreate
-
-# Model Definitions:
-# class UserCreate(BaseModel):
-#     name: str = Field(..., min_length=3)
-#     email: str = Field(..., pattern='^[\\w\\.-]+@[\\w\\.-]+\\.\\w+$')
-#     password: str = Field(..., min_length=8)'''
-    
-# failure_summery='''
-# E   psycopg2.OperationalError: connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused (0x0000274D/10061)
-# E       Is the server running on that host and accepting TCP/IP connections?
-# E   connection to server at "localhost" (::1), port 5432 failed: Connection refused (0x0000274D/10061)
-# E       Is the server running on that host and accepting TCP/IP connections?
-
-# E   sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused (0x0000274D/10061)
-# E       Is the server running on that host and accepting TCP/IP connections?
-# E   connection to server at "localhost" (::1), port 5432 failed: Connection refused (0x0000274D/10061)
-# E       Is the server running on that host and accepting TCP/IP connections?
-# E
-# E   (Background on this error at: https://sqlalche.me/e/20/e3q8)'''
-# get_test_file = os.path.join(test_dir, 'user_services', 'create_user_test.py')
-# test_functions=get_test_functions(get_test_file)
-# print(test_functions)
-# for test_function in test_functions: 
-           
-#     failure_summery=run_tests(get_test_file, test_function)
-#     if failure_summery:
-#         print("Healing process started")
-#         start_healing(test_function, get_test_file, function_code, failure_summery)
-#         break
 
 
 

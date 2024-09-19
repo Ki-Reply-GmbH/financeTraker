@@ -31,7 +31,7 @@ def capture_working_function_responses():
 
 
 def save_response_code(code):
-    print(type(code))
+    #print(type(code))
     
     global response_code_storage
     

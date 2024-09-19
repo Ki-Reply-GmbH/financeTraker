@@ -1,9 +1,12 @@
 import ast
 import os
-
+# In your code file (e.g., function_extractor.py)
+from self_heal_data_structure import TestFunctionGenerator
+from typing import List, Dict
 class FunctionVisitor(ast.NodeVisitor):
     def __init__(self, file_name, project_base_path):
         self.functions = []
+        self.test_function_generators = []
         self.global_imports = {}
         self.current_function = None
         self.file_name = file_name
@@ -29,7 +32,9 @@ class FunctionVisitor(ast.NodeVisitor):
 
         self.functions.append(function_info)
         self.current_function = None
-
+        
+    
+        
     def visit_Import(self, node):
         for alias in node.names:
             self.global_imports[alias.asname or alias.name] = alias.name
@@ -106,7 +111,9 @@ def get_functions_and_imports(file_path, app_dir_name, project_base_path):
 
     visitor = FunctionVisitor(module_path, project_base_path)
     visitor.visit(tree)
-
+    #print(f"Test Function inside graber:\n {visitor.test_function_generators}")
+    #print(type(visitor.test_function_generators))
+    
     return visitor.functions
 
 def format_function_as_string(func):
