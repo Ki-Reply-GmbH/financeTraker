@@ -1,4 +1,4 @@
-from setup import chain
+from setup import chain, chain_for_healer
 import ast
 import os
 from functionGraber import get_functions_and_imports, format_function_as_string, get_test_functions
@@ -6,12 +6,12 @@ from test_analyzer import run_tests
 from self_healer import Healer
 import json
 from testGenConfig import source_dir, test_dir, project_root_module_name, root_dir
-from worker import capture_working_function_responses, save_response_code, save_failure_summary
 from self_heal_data_structure import TestFunctionGenerator,GeneratedTestForFunction
 from data_store import test_function_generators
 from pydantic import BaseModel
 from self_heal_data_structure import statusEnum
 import re  
+from typing import Tuple
 get_source_file = os.path.join(source_dir, 'services', 'user_services.py')  
 
 
@@ -54,7 +54,7 @@ def generate_test_with_LLM():
         
         # Handle multiple parts of the response: "common code", "test1", "test2", etc.
         
-        response_code,response_code_dict = extract_code_from_llm_response(response)
+        response_code,response_code_dict = extract_code_from_llm_response(response, test_function_generator)
         #print(f"Response code extracted:\n{response_code}")
         #print(type(response_code))
         
@@ -101,6 +101,18 @@ def generate_test_with_LLM():
                 
                 print("Healing process started")
                 # Start the healing process if tests fail
+                response_failure = handle_failure_and_invoke_chain(
+                    test_function_generator.function_name,
+                    test_function_generator.function_code,
+                    test_function_generator.function_common_code,  # Assuming this is part of test_function_generator
+                    test_function_code_name,
+                    generated_test.test_function_code,
+                    generated_test.test_error
+                )
+                
+                print(f"Response for failure and heal :\n {response_failure}")
+                extract_code_from_llm_response_for_failure(response_failure)
+                
                 start_healing(test_function_code_name, test_file_path, function.get('code', 'noCodeFound'), failure_summary)
                 
             else:
@@ -109,23 +121,59 @@ def generate_test_with_LLM():
             # Break after the first test function for now (as per your original code)
             break
         break
-    print("------")
-    print(f"Function Name: {test_function_generator.function_name}")
-    print(f"Function Code: {test_function_generator.function_code}")
-    print("Generated Tests:")
+    # print("------")
+    # print(f"Function Name:{test_function_generator.function_name}")
+    # print(f"Function Code:\n{test_function_generator.function_code}")
+    # print(f"Function common Code:\n{test_function_generator.function_common_code}")
+    # print("Generated Tests:")
     
-    for test in test_function_generator.generated_tests:
-        print(f"  Test Function Key: {test.test_function_key}")
-        print(f"  Test Function Code: {test.test_function_code}")
-        print(f"  Test Function Generated Name: {test.test_function_generated_name}")
-        print(f"  Test Error: {test.test_error}")
-        print(f"  Retry Count: {test.retry_count}")
-        print(f"  Status: {test.status}")
-        print("------")
+    # for test in test_function_generator.generated_tests:
+    #     print(f"  Test Function Key:{test.test_function_key}")
+    #     print(f"  Test Function Code:\n{test.test_function_code}")
+    #     print(f"  Test Function Generated Name:{test.test_function_generated_name}")
+    #     print(f"  Test Error:{test.test_error}")
+    #     print(f"  Retry Count:{test.retry_count}")
+    #     print(f"  Status:{test.status}")
+    #     print("------")
+
+
+def handle_failure_and_invoke_chain(function_name, function_code, common_code, test_function_code_name, test_function_code, test_error):
+    # Create the input for the chain based on the provided parameters
+    input_data = json.dumps({
+        "function_name": function_name,
+        "function_code": function_code,
+        "function_common_code": common_code,
+        "generated_test_function_name": test_function_code_name,
+        "test_function_code": test_function_code,
+        "test_error": test_error
+    }, separators=(',', ':'))
+    #input_to_json = json.dumps(input_data)
+    
+    # Log the input data for debugging
+    print(f"Invoking chain with the following input data:\n{json.dumps(input_data, indent=4)}")
+    
+    # Invoke the chain with the input data and return only the outputs
+    response = chain_for_healer.invoke({"input": input_data}, return_only_outputs=True)
+    
+    # Handle the response as needed
+    #print(f"Chain response: {response}")
+    return response
 
 
 
-def extract_code_from_llm_response(response):
+def extract_code_from_llm_response_for_failure(response_upon_failure):
+    # Extracting the values
+    corrected_common_code = response_upon_failure['text']['corrected_common_code']
+    corrected_test_code = response_upon_failure['text']['corrected_test_code']
+
+    # Printing them
+    print("Corrected Common Code:\n", corrected_common_code)
+    print("Corrected Test Code:\n", corrected_test_code)
+
+
+    
+    
+def extract_code_from_llm_response(response: str, test_function_generator: TestFunctionGenerator) -> Tuple[str, dict]:
     """
     Extracts and concatenates the different sections of the LLM response, including 'commoncode', 'test1', 'test2', etc.
     Uses a for loop to count and process the test cases. Handles missing or None values gracefully.
@@ -146,6 +194,8 @@ def extract_code_from_llm_response(response):
             print(f"Common code extracted:\n{common_code}")
             full_code_dict['commoncode'] = common_code
             full_code += common_code + "\n\n"  # Add common code with spacing
+            
+            test_function_generator.function_common_code = common_code
             
         else:
             print("No common code found in response")

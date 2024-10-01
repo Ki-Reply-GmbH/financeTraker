@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Tuple
 from enum import Enum
 
 
@@ -18,6 +18,7 @@ class GeneratedTestForFunction(BaseModel):
 
 class TestFunctionGenerator(BaseModel):
     function_name: str = ""
+    function_common_code: str = ""
     function_code: str = ""  
     generated_tests: List[GeneratedTestForFunction] = []
 

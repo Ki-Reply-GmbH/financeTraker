@@ -38,3 +38,27 @@ class CustomCodeOutputParserForFewShot(JsonOutputParser):
         except json.JSONDecodeError as e:
             print(f"JSON parsing error: {e}")
             return "Parsing error"
+
+
+class CustomeCodeOutputParserForSelfHeal(JsonOutputParser):
+    def parse(self, text):
+       # print(f"Raw text to be parsed: {text}")  # Debug: Inspect raw text
+        try:
+            json_data = json.loads(text)  # Directly use json.loads to parse the string
+           # print(f"Parsed JSON data: {json_data}")  # Debug: Inspect parsed JSON
+            
+            # Extract values for the specified keys
+            common_code = json_data.get('corrected_common_code', 'No "Common code" key found in the response.')
+            test = json_data.get('corrected_test_code', 'No "corrected_test_code" key found in the response.')
+
+
+            # Return the extracted values as a dictionary
+            full_code = {
+                'corrected_common_code': common_code,
+                'corrected_test_code': test
+            }
+            json_string = json.dumps(full_code, indent=4)
+            return json_string
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error: {e}")
+            return "Parsing error"

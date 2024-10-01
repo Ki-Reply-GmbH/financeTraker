@@ -1,6 +1,6 @@
 from llm_setup import setup_llm
-from prompts import setup_test_generation_case_prompt, setup_test_generation_case_fewshot_prompt
-from output_parser import CustomCodeOutputParser, CustomCodeOutputParserForFewShot
+from prompts import setup_test_generation_case_fewshot_prompt, setup_self_healing_prompt_template
+from output_parser import CustomCodeOutputParserForFewShot, CustomeCodeOutputParserForSelfHeal
 from langchain.chains import LLMChain
 
 # Setup the LLM model
@@ -8,14 +8,16 @@ llm = setup_llm()
 
 # Setup the prompt
 prompt = setup_test_generation_case_fewshot_prompt()
+prompt_for_healer = setup_self_healing_prompt_template()
 
 # Setup the output parser
 output_parser = CustomCodeOutputParserForFewShot()
+output_parser_for_healer = CustomeCodeOutputParserForSelfHeal()
 
 # Create the LLMChain
 chain = LLMChain(llm=llm, prompt=prompt, output_parser=output_parser)
 
-
+chain_for_healer = LLMChain(llm=llm, prompt=prompt_for_healer, output_parser=output_parser_for_healer)
 
 
 
