@@ -1,7 +1,7 @@
 from functionGraber import get_functions_and_imports, format_function_as_string, get_test_functions
 from testGenConfig import root_dir
 from prompts import setup_self_healing_prompt_template
-
+from self_heal_data_structure import TestFunctionGenerator, GeneratedTestForFunction
 class Healer:
     def __init__(self, test_function_name,test_file_path, function_code, test_run_output,retry=3):
         self.test_function_name = test_function_name

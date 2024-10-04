@@ -17,3 +17,4 @@ langchain_openai
 langchain
 langchain_core
 langchain-community
+pydantic

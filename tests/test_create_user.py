@@ -16,33 +16,32 @@ def mock_db_session(mocker):
 
 def test_create_user_success(mocker, mock_db_session, mock_user_create):
     # Given
-    mock_db_user = User(name='Test User', email='test@example.com', password='securepassword123')
+    new_user = User(name='Test User', email='test@example.com', password='securepassword123')
     mock_db_session.add = MagicMock()
     mock_db_session.commit = MagicMock()
-    mock_db_session.refresh = MagicMock()
-
-    mocker.patch('app.models.models.User', return_value=mock_db_user)
+    mock_db_session.refresh = MagicMock(return_value=None)
+    mocker.patch('app.models.models.User', return_value=new_user)
 
     # When
     result = create_user(mock_user_create)
 
     # Then
-    assert result == mock_db_user
-    mock_db_session.add.assert_called_once_with(mock_db_user)
+    assert result == new_user
+    mock_db_session.add.assert_called_once_with(new_user)
     mock_db_session.commit.assert_called_once()
-    mock_db_session.refresh.assert_called_once_with(mock_db_user)
+    mock_db_session.refresh.assert_called_once_with(new_user)
 
-def test_create_user_exception_on_db_failure(mocker, mock_db_session, mock_user_create):
+def test_create_user_invalid_email(mocker, mock_db_session):
     # Given
-    mock_db_session.add.side_effect = Exception('DB Error')
-    mocker.patch('app.models.models.User', return_value=User())
+    invalid_user_create = UserCreate(name='Test User', email='invalid-email', password='securepassword123')
+    mocker.patch('app.models.models.User', side_effect=ValueError('Invalid email format'))
 
     # When
-    with pytest.raises(Exception) as exc_info:
-        create_user(mock_user_create)
+    with pytest.raises(ValueError) as exc_info:
+        create_user(invalid_user_create)
 
     # Then
-    assert str(exc_info.value) == 'DB Error'
-    mock_db_session.add.assert_called()
+    assert str(exc_info.value) == 'Invalid email format'
+    mock_db_session.add.assert_not_called()
     mock_db_session.commit.assert_not_called()
     mock_db_session.refresh.assert_not_called()
