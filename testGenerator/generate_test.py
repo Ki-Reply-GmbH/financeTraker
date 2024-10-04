@@ -167,8 +167,8 @@ def extract_code_from_llm_response_for_failure(response_upon_failure):
     corrected_test_code = response_upon_failure['text']['corrected_test_code']
 
     # Printing them
-    print("Corrected Common Code:\n", corrected_common_code)
-    print("Corrected Test Code:\n", corrected_test_code)
+    print("Corrected Common Code:", corrected_common_code)
+    print("Corrected Test Code:", corrected_test_code)
 
 
     

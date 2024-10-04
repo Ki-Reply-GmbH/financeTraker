@@ -155,6 +155,7 @@ def setup_self_healing_prompt_template():
     ++ Regenerate the corrected unit test code  if necessary.
     ++ Regenerate the corrected Function Common Code if necessary.
     ++ Your Response must be structured as shown in the example below in JSON formate.
+    ++ Your Response must be precise because, on your response pytest will be run and no error is expected.
 
     
     sample LLM JSON Response:
