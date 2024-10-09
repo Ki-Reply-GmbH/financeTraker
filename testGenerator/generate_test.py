@@ -13,7 +13,7 @@ from self_heal_data_structure import statusEnum
 import re  
 from typing import Tuple
 get_source_file = os.path.join(source_dir, 'services', 'user_services.py')  
-
+get_test_code_file = 'tests/test_create_user.py'
 
 
 def start_healing(test_function, test_file_path, function_code, test_run_output):
@@ -111,7 +111,15 @@ def generate_test_with_LLM():
                 )
                 
                 print(f"Response for failure and heal :\n {response_failure}")
-                extract_code_from_llm_response_for_failure(response_failure)
+                corrected_common_code,corrected_test_code = extract_code_from_llm_response_for_failure(response_failure)
+                
+                old_common_code = test_function_generator.function_common_code
+                old_test_code = generated_test.test_function_code
+                new_common_code = corrected_common_code
+                new_test_code = corrected_test_code
+                
+                replace_code_in_file(get_test_code_file , old_common_code, new_common_code, old_test_code, new_test_code)
+                print(f"Replacements completed in {get_test_code_file}.")
                 
                 start_healing(test_function_code_name, test_file_path, function.get('code', 'noCodeFound'), failure_summary)
                 
@@ -135,6 +143,24 @@ def generate_test_with_LLM():
     #     print(f"  Retry Count:{test.retry_count}")
     #     print(f"  Status:{test.status}")
     #     print("------")
+
+
+
+# Function to replace code in specific sections of the file
+def replace_code_in_file(file_path, old_common_code, new_common_code, old_test_code, new_test_code):
+    with open(file_path, 'r') as file:
+        file_contents = file.read()
+
+    # Use regular expressions to identify and replace the old common code and test code
+    # Replace only the specific common code section
+    file_contents = file_contents.replace(old_common_code.strip(), new_common_code.strip())
+
+    # Replace only the specific test code section
+    file_contents = file_contents.replace(old_test_code.strip(), new_test_code.strip())
+
+    # Write the updated contents back to the file
+    with open(file_path, 'w') as file:
+        file.write(file_contents)
 
 
 def handle_failure_and_invoke_chain(function_name, function_code, common_code, test_function_code_name, test_function_code, test_error):
@@ -170,6 +196,7 @@ def extract_code_from_llm_response_for_failure(response_upon_failure):
     print("Corrected Common Code:", corrected_common_code)
     print("Corrected Test Code:", corrected_test_code)
 
+    return corrected_common_code, corrected_test_code
 
     
     

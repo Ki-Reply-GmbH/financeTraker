@@ -14,11 +14,12 @@ class GeneratedTestForFunction(BaseModel):
     test_function_generated_name: str = ""
     test_error: str = ""
     retry_count: int = 0
-    status: statusEnum = statusEnum.DONE
+    status: statusEnum = statusEnum.NOT_STARTED
 
 class TestFunctionGenerator(BaseModel):
     function_name: str = ""
     function_common_code: str = ""
     function_code: str = ""  
+    is_test_passed: bool = False
     generated_tests: List[GeneratedTestForFunction] = []
 
