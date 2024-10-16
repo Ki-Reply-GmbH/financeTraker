@@ -60,11 +60,11 @@ def setup_test_generation_case_fewshot_prompt():
  
     ###Unit Test Generation Phase:###
  
-        - Based on the initial description, craft corresponding unit tests from the Human Message.
-        - Utilize pytest and mocker for data-driven testing.
+        - Based on the initial description, craft corresponding unit tests from the Human Message using ** pytest ** framework.
+        - Utilize ** pytest ** and **mocker** for data-driven testing.
         - Structure the tests with clear Given blocks to enhance test coverage and support robust system development.
         - Include unit test code and inline documentation explaining the test purpose and logic.
-        - Use mocks to simulate external dependencies accurately.
+        - Use mocks to simulate external dependencies such as Database, API, Data pipelines etc accurately.
  
     ###Important Instructions:###
  
@@ -155,7 +155,7 @@ def setup_self_healing_prompt_template():
     ++ Regenerate the corrected unit test code  if necessary.
     ++ Regenerate the corrected Function Common Code if necessary.
     ++ Your Response must be structured as shown in the example below in JSON formate.
-    ++ Your Response must be precise because, on your response pytest will be run and no error is expected.
+    ++ Your Response must be precise because, on your response ** pytest ** will be run and no error is expected.
 
     
     sample LLM JSON Response:

@@ -4,9 +4,12 @@ from datetime import datetime, timedelta
 from app.config import get_secret_key,get_access_token_expire_minutes
 from app.services.user_services import get_user_by_id
 from app.logger import get_logger
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+import os
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 logger = get_logger(__name__)
-
 
 SECRET_KEY = get_secret_key()
 ALGORITHM = "HS256"
@@ -23,12 +26,6 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-import os
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(

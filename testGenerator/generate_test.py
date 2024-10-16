@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from self_heal_data_structure import statusEnum
 import re  
 from typing import Tuple
-get_source_file = os.path.join(source_dir, 'services', 'user_services.py')  
+get_source_file = os.path.join(source_dir, 'services', 'sample_functions_to_test.py')  
 get_test_code_file = 'tests/test_create_user.py'
 
 
@@ -55,7 +55,7 @@ def generate_test_with_LLM():
         # Handle multiple parts of the response: "common code", "test1", "test2", etc.
         
         response_code,response_code_dict = extract_code_from_llm_response(response, test_function_generator)
-        #print(f"Response code extracted:\n{response_code}")
+        print(f"Response code extracted:\n{response_code}")
         #print(type(response_code))
         
         test_code_response = extract_only_test_code_from_llm_response(response)
@@ -89,46 +89,46 @@ def generate_test_with_LLM():
         for generated_test in test_function_generator.generated_tests:
             test_function_code_name = generated_test.test_function_generated_name
             # Run tests on the function
-            failure_summary = run_tests(test_file_path, test_function_code_name)
+            #failure_summary = run_tests(test_file_path, test_function_code_name)
             
-            if failure_summary:
+            # if failure_summary:
                 
-                #save_failure_summary(failure_summary)
+            #     #save_failure_summary(failure_summary)
                 
-                # Update the corresponding test with error information
-                generated_test.test_error = failure_summary
-                generated_test.status = statusEnum.FAILED  # Update status or retry if needed
+            #     # Update the corresponding test with error information
+            #     generated_test.test_error = failure_summary
+            #     generated_test.status = statusEnum.FAILED  # Update status or retry if needed
                 
-                print("Healing process started")
-                # Start the healing process if tests fail
-                response_failure = handle_failure_and_invoke_chain(
-                    test_function_generator.function_name,
-                    test_function_generator.function_code,
-                    test_function_generator.function_common_code,  # Assuming this is part of test_function_generator
-                    test_function_code_name,
-                    generated_test.test_function_code,
-                    generated_test.test_error
-                )
+            #     print("Healing process started")
+            #     # Start the healing process if tests fail
+            #     response_failure = handle_failure_and_invoke_chain(
+            #         test_function_generator.function_name,
+            #         test_function_generator.function_code,
+            #         test_function_generator.function_common_code,  # Assuming this is part of test_function_generator
+            #         test_function_code_name,
+            #         generated_test.test_function_code,
+            #         generated_test.test_error
+            #     )
                 
-                print(f"Response for failure and heal :\n {response_failure}")
-                corrected_common_code,corrected_test_code = extract_code_from_llm_response_for_failure(response_failure)
+            #     print(f"Response for failure and heal :\n {response_failure}")
+            #     corrected_common_code,corrected_test_code = extract_code_from_llm_response_for_failure(response_failure)
                 
-                old_common_code = test_function_generator.function_common_code
-                old_test_code = generated_test.test_function_code
-                new_common_code = corrected_common_code
-                new_test_code = corrected_test_code
+            #     old_common_code = test_function_generator.function_common_code
+            #     old_test_code = generated_test.test_function_code
+            #     new_common_code = corrected_common_code
+            #     new_test_code = corrected_test_code
                 
-                replace_code_in_file(get_test_code_file , old_common_code, new_common_code, old_test_code, new_test_code)
-                print(f"Replacements completed in {get_test_code_file}.")
+            #     replace_code_in_file(get_test_code_file , old_common_code, new_common_code, old_test_code, new_test_code)
+            #     print(f"Replacements completed in {get_test_code_file}.")
                 
-                start_healing(test_function_code_name, test_file_path, function.get('code', 'noCodeFound'), failure_summary)
+            #     start_healing(test_function_code_name, test_file_path, function.get('code', 'noCodeFound'), failure_summary)
                 
-            else:
-                generated_test.status = statusEnum.DONE
+            # else:
+            #     generated_test.status = statusEnum.DONE
                 
             # Break after the first test function for now (as per your original code)
             break
-        break
+    
     # print("------")
     # print(f"Function Name:{test_function_generator.function_name}")
     # print(f"Function Code:\n{test_function_generator.function_code}")
