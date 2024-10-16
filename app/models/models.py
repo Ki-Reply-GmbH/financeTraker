@@ -7,9 +7,6 @@ from datetime import datetime
 import bcrypt
 from enum import Enum
 from sqlalchemy import Enum as SQLAlchemyEnum
-
-
-
 from contextlib import contextmanager
 
 @contextmanager
