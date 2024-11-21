@@ -71,6 +71,7 @@
             var password = document.getElementById('password').value;
 
             var data = JSON.stringify({ "email": email, "password": password });
+            console.log(data);
 
             fetch('/user/login', {
                 method: 'POST',
